@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Token Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 p-4 sm:p-8 font-sans text-slate-900">
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-black">एडमिन डैशबोर्ड (Admin Dashboard)</h1>
+        <p class="text-xs text-slate-300">नई तारीखें जोड़ें और टोकन सूची देखें</p>
+      </div>
+      <button onclick="loadAllData()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
+        🔄 रिफ्रेश (Refresh)
+      </button>
+    </div>
+
+    <!-- Add Date Form -->
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      <h2 class="text-lg font-bold mb-4 text-slate-800">📅 नई तारीख और लिमिट खोलें (Add Date)</h2>
+      <form onsubmit="addNewSlot(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-bold mb-1">तारीख चुनें (Select Date)</label>
+          <input type="date" id="slotDate" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold mb-1">लेबल (जैसे: 26 सितंबर 2026)</label>
+          <input type="text" id="slotLabel" placeholder="26 सितंबर 2026" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold mb-1">टोकन लिमिट (Daily Limit)</label>
+          <input type="number" id="slotLimit" value="200" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
+        </div>
+        <div class="sm:col-span-3">
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition">
+            ➕ यह तारीख लाइव करें (Add to Website)
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Slots Table -->
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      <h2 class="text-lg font-bold mb-4 text-slate-800">📋 एक्टिव तारीखें और बुक हुए टोकन</h2>
+      <div id="slotsTableContainer" class="overflow-x-auto text-sm">
+        <p class="text-slate-500">लोड हो रहा है...</p>
+      </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      <h2 class="text-lg font-bold mb-4 text-slate-800">👥 बुक हुए सभी टोकन की जानकारी</h2>
+      <div id="bookingsTableContainer" class="overflow-x-auto text-sm max-h-96">
+        <p class="text-slate-500">लोड हो रहा है...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.onload = loadAllData;
+
+    async function loadAllData() {
+      await loadSlots();
+      await loadBookings();
+    }
+
+    async function loadSlots() {
+      const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+      const container = document.getElementById('slotsTableContainer');
+      if (error || !data) { container.innerHTML = '<p class="text-red-500">त्रुटि!</p>'; return; }
+
+      let html = '<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b"><th class="p-2">तारीख</th><th class="p-2">लेबल</th><th class="p-2">बुक टोकन</th><th class="p-2">कुल लिमिट</th></tr>';
+      data.forEach(s => {
+        html += `<tr class="border-b"><td class="p-2 font-bold">${s.date}</td><td class="p-2">${s.label}</td><td class="p-2 font-bold text-blue-600">${s.booked_count || 0}</td><td class="p-2 font-bold text-green-600">${s.limit_count}</td></tr>`;
+      });
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    async function loadBookings() {
+      const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
+      const container = document.getElementById('bookingsTableContainer');
+      if (error || !data) { container.innerHTML = '<p class="text-red-500">त्रुटि!</p>'; return; }
+
+      let html = '<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b"><th class="p-2">टोकन #</th><th class="p-2">तारीख</th><th class="p-2">नाम</th><th class="p-2">फोन</th><th class="p-2">कार्ड</th></tr>';
+      data.forEach(b => {
+        html += `<tr class="border-b"><td class="p-2 font-bold text-red-600">#${b.token_number}</td><td class="p-2">${b.token_date}</td><td class="p-2 font-semibold">${b.name}</td><td class="p-2">${b.phone}</td><td class="p-2">${b.card}</td></tr>`;
+      });
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    async function addNewSlot(e) {
+      e.preventDefault();
+      const date = document.getElementById('slotDate').value;
+      const label = document.getElementById('slotLabel').value;
+      const limit = parseInt(document.getElementById('slotLimit').value);
+
+      const { error } = await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
+      if (error) {
+        alert('त्रुटि: ' + error.message);
+      } else {
+        alert('तारीख सफलता से जुड़ गई!');
+        loadAllData();
+      }
+    }
+  </script>
+</body>
+</html>
