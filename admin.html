@@ -3,71 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Token Portal</title>
+  <title>Token Distribution Portal - Admin Console</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', 'Hind', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .done-row { background-color: #f0fdf4 !important; }
+    .done-text { text-decoration: line-through; color: #166534 !important; }
+    summary::-webkit-details-marker { display:none; }
+  </style>
 </head>
-<body class="bg-slate-100 p-4 sm:p-8 font-sans text-slate-900">
-  <div class="max-w-4xl mx-auto space-y-6">
-    
-    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-black">एडमिन डैशबोर्ड (Admin Dashboard)</h1>
-        <p class="text-xs text-slate-300">नई तारीखें जोड़ें और टोकन सूची देखें</p>
+<body class="bg-slate-50 min-h-screen text-slate-900 pb-12">
+
+  <!-- Header (Cleared Government Branding for Legal Safety) -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-blue-600 rounded-xl text-white">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none">FPS Token Management System</h1>
+          <p class="text-xs text-slate-400 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
+        </div>
       </div>
-      <button onclick="loadAllData()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
-        🔄 रिफ्रेश (Refresh)
+      <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
       </button>
     </div>
+  </header>
 
-    <!-- Add Date Form -->
-    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-      <h2 class="text-lg font-bold mb-4 text-slate-800">📅 नई तारीख और लिमिट खोलें (Add Date)</h2>
-      <form onsubmit="addNewSlot(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs font-bold mb-1">तारीख चुनें (Select Date)</label>
-          <input type="date" id="slotDate" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- Legal Notice Banner -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0"></i>
+      <span><b>Privacy & Compliance Note:</b> This console manages internal/local shop queue tokens only. Data mapped here uses dealer local records for fast token issuing.</span>
+    </div>
+
+    <!-- Add New Slot & Active Slots Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Add Slot Form -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <i data-lucide="calendar-plus" class="text-blue-600 w-5 h-5"></i>
+          <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
         </div>
-        <div>
-          <label class="block text-xs font-bold mb-1">लेबल (जैसे: 26 सितंबर 2026)</label>
-          <input type="text" id="slotLabel" placeholder="26 सितंबर 2026" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
-        </div>
-        <div>
-          <label class="block text-xs font-bold mb-1">टोकन लिमिट (Daily Limit)</label>
-          <input type="number" id="slotLimit" value="200" required class="w-full border p-2.5 rounded-xl text-sm font-semibold">
-        </div>
-        <div class="sm:col-span-3">
-          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition">
-            ➕ यह तारीख लाइव करें (Add to Website)
+
+        <form onsubmit="addNewSlot(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
+            <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
+            <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
+            <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <button type="submit" id="addSlotBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
           </button>
+        </form>
+      </div>
+
+      <!-- Active Slots -->
+      <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+          </div>
+          <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
         </div>
-      </form>
-    </div>
 
-    <!-- Slots Table -->
-    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-      <h2 class="text-lg font-bold mb-4 text-slate-800">📋 एक्टिव तारीखें और बुक हुए टोकन</h2>
-      <div id="slotsTableContainer" class="overflow-x-auto text-sm">
-        <p class="text-slate-500">लोड हो रहा है...</p>
+        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+          <p class="text-xs text-slate-400">Loading active slots...</p>
+        </div>
       </div>
     </div>
 
-    <!-- Bookings Table -->
-    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-      <h2 class="text-lg font-bold mb-4 text-slate-800">👥 बुक हुए सभी टोकन की जानकारी</h2>
-      <div id="bookingsTableContainer" class="overflow-x-auto text-sm max-h-96">
-        <p class="text-slate-500">लोड हो रहा है...</p>
+    <!-- Booking Table with Date Filter -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Filter Bar -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Filter by date and view local shop records</p>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <label class="text-xs font-bold text-slate-600">Filter Date:</label>
+          <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">All Dates</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5">Token ID</th>
+              <th class="p-3.5">Date</th>
+              <th class="p-3.5">Card Holder Name</th>
+              <th class="p-3.5">Booked By</th>
+              <th class="p-3.5">Phone</th>
+              <th class="p-3.5">Card No.</th>
+              <th class="p-3.5">Details</th>
+              <th class="p-3.5 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
+            <tr>
+              <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-  </div>
+  </main>
 
   <script>
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    window.onload = loadAllData;
+    // Authorized Local Records (Internal FPS Mapping)
+    const localAuthorizedDatabase = {
+        "212010186726": { holderName: "राम देवी", fatherHusbandName: "लालमन मौर्य", motherName: "रामवती देवी", units: 4, regDate: "01/06/2019" },
+        "212010186727": { holderName: "शीला", fatherHusbandName: "राम कुमार", motherName: "सुमित्रा देवी", units: 3, regDate: "15/08/2020" },
+        "212010186728": { holderName: "मुन्नी देवी", fatherHusbandName: "राकेश चंद्र", motherName: "शांति देवी", units: 6, regDate: "10/02/2018" },
+        "212010186729": { holderName: "सुनीता देवी", fatherHusbandName: "सुरेश कुमार", motherName: "पार्वती देवी", units: 5, regDate: "12/11/2019" }
+    };
+
+    var allBookingsData = [];
+    var allSlotsData = [];
+
+    window.onload = function() {
+      lucide.createIcons();
+      loadAllData();
+    };
 
     async function loadAllData() {
       await loadSlots();
@@ -76,42 +168,203 @@
 
     async function loadSlots() {
       const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
-      const container = document.getElementById('slotsTableContainer');
-      if (error || !data) { container.innerHTML = '<p class="text-red-500">त्रुटि!</p>'; return; }
+      if (error) { console.error(error); return; }
 
-      let html = '<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b"><th class="p-2">तारीख</th><th class="p-2">लेबल</th><th class="p-2">बुक टोकन</th><th class="p-2">कुल लिमिट</th></tr>';
-      data.forEach(s => {
-        html += `<tr class="border-b"><td class="p-2 font-bold">${s.date}</td><td class="p-2">${s.label}</td><td class="p-2 font-bold text-blue-600">${s.booked_count || 0}</td><td class="p-2 font-bold text-green-600">${s.limit_count}</td></tr>`;
+      allSlotsData = data || [];
+      var slotsContainer = document.getElementById('slotsContainer');
+      var filterSelect = document.getElementById('dateFilter');
+      var slotsCountText = document.getElementById('slotsCountText');
+      
+      slotsContainer.innerHTML = '';
+      var currentFilter = filterSelect.value;
+      filterSelect.innerHTML = '<option value="ALL">All Dates</option>';
+      slotsCountText.innerText = allSlotsData.length + " Slots Active";
+
+      if (allSlotsData.length === 0) {
+        slotsContainer.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No slots created yet.</p>';
+        return;
+      }
+
+      allSlotsData.forEach(function(slot) {
+        var booked = slot.booked_count || 0;
+        var limit = slot.limit_count || 200;
+
+        var card = document.createElement('div');
+        card.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex justify-between items-center hover:border-slate-300 transition';
+        card.innerHTML = 
+          '<div>' +
+            '<div class="font-bold text-slate-900 text-xs">' + (slot.label || slot.date) + '</div>' +
+            '<div class="text-[11px] text-slate-500 font-medium">Code: ' + slot.date + ' | <span class="text-blue-600 font-bold">' + booked + '/' + limit + ' Booked</span></div>' +
+          '</div>' +
+          '<button onclick="deleteSlot(\'' + slot.date + '\')" title="Delete Date Slot" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">' +
+            '<i data-lucide="trash-2" class="w-4 h-4"></i>' +
+          '</button>';
+        slotsContainer.appendChild(card);
+
+        var opt = document.createElement('option');
+        opt.value = slot.date;
+        opt.innerText = (slot.label || slot.date);
+        filterSelect.appendChild(opt);
       });
-      html += '</table>';
-      container.innerHTML = html;
+
+      filterSelect.value = currentFilter;
+      lucide.createIcons();
+    }
+
+    function getNameInitials(fullName) {
+      if (!fullName) return 'TK';
+      var parts = fullName.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return parts[0][0].toUpperCase();
     }
 
     async function loadBookings() {
       const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
-      const container = document.getElementById('bookingsTableContainer');
-      if (error || !data) { container.innerHTML = '<p class="text-red-500">त्रुटि!</p>'; return; }
+      
+      if (error || !data || data.length === 0) {
+        let localData = JSON.parse(localStorage.getItem("adminBookings")) || [];
+        allBookingsData = localData;
+      } else {
+        allBookingsData = data;
+      }
+      filterBookingsByDate();
+    }
 
-      let html = '<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b"><th class="p-2">टोकन #</th><th class="p-2">तारीख</th><th class="p-2">नाम</th><th class="p-2">फोन</th><th class="p-2">कार्ड</th></tr>';
-      data.forEach(b => {
-        html += `<tr class="border-b"><td class="p-2 font-bold text-red-600">#${b.token_number}</td><td class="p-2">${b.token_date}</td><td class="p-2 font-semibold">${b.name}</td><td class="p-2">${b.phone}</td><td class="p-2">${b.card}</td></tr>`;
+    function filterBookingsByDate() {
+      var selectedDate = document.getElementById('dateFilter').value;
+      var tbody = document.getElementById('bookingsTableBody');
+      tbody.innerHTML = '';
+
+      var filtered = allBookingsData;
+      if (selectedDate !== 'ALL') {
+        filtered = allBookingsData.filter(function(b) { return b.token_date === selectedDate || b.date === selectedDate; });
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(function(b) {
+        var isDone = (b.status === 'COMPLETED');
+        var initials = getNameInitials(b.name || b.userName);
+        var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
+        var fullToken = initials + '-' + formattedNum;
+
+        var cardNo = b.card || b.cardNo || 'N/A';
+        
+        // Match from Database or internal fallback
+        var cardInfo = localAuthorizedDatabase[cardNo] || {
+            holderName: b.holderName || b.holder_name || b.name || "Standard Customer",
+            fatherHusbandName: b.fatherName || b.father_husband_name || "N/A",
+            motherName: b.motherName || b.mother_name || "N/A",
+            units: b.units || "N/A",
+            regDate: b.regDate || "N/A"
+        };
+
+        var tr = document.createElement('tr');
+        tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
+
+        tr.innerHTML = 
+          '<td class="p-3.5">' +
+            (isDone 
+              ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md"><i data-lucide="check-circle" class="w-3 h-3"></i> Completed</span>' 
+              : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span>') +
+          '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + fullToken + '</td>' +
+          '<td class="p-3.5 text-slate-600 font-medium">' + (b.token_date || b.time || '-') + '</td>' +
+          '<td class="p-3.5 font-bold text-blue-700">' + cardInfo.holderName + '</td>' +
+          '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
+          '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
+          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + cardNo + '</td>' +
+          '<td class="p-3.5">' +
+            '<details class="cursor-pointer">' +
+              '<summary class="text-blue-600 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> Details</summary>' +
+              '<div class="mt-2 p-2 bg-slate-100 border border-slate-200 rounded-lg text-[11px] space-y-1 font-sans">' +
+                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
+                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
+                '<p><b>Total Units:</b> <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
+              '</div>' +
+            '</details>' +
+          '</td>' +
+          '<td class="p-3.5 text-center">' +
+            (isDone
+              ? '<button onclick="toggleStatus(' + (b.id || 0) + ', \'PENDING\')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2.5 py-1 rounded text-[11px] transition">Undo</button>'
+              : '<button onclick="toggleStatus(' + (b.id || 0) + ', \'COMPLETED\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded text-[11px] inline-flex items-center gap-1 transition shadow-sm"><i data-lucide="check" class="w-3 h-3"></i> Mark Done</button>') +
+          '</td>';
+
+        tbody.appendChild(tr);
       });
-      html += '</table>';
-      container.innerHTML = html;
+
+      lucide.createIcons();
+    }
+
+    async function toggleStatus(bookingId, newStatus) {
+      try {
+        if(bookingId) {
+            await supabaseClient
+              .from('bookings')
+              .update({ status: newStatus })
+              .eq('id', bookingId);
+        }
+
+        var targetIndex = allBookingsData.findIndex(function(x) { return x.id === bookingId; });
+        if (targetIndex !== -1) {
+          allBookingsData[targetIndex].status = newStatus;
+        }
+        filterBookingsByDate();
+
+      } catch (err) {
+        alert('Update failed: ' + (err.message || err));
+      }
+    }
+
+    async function deleteSlot(dateCode) {
+      if (!confirm('Kya aap sach me date ' + dateCode + ' ko hatana chahte hain?')) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('slots')
+          .delete()
+          .eq('date', dateCode);
+
+        if (error) throw error;
+
+        alert('Date slot successfully delete ho gaya!');
+        loadAllData();
+      } catch (err) {
+        alert('Delete karne me dikkat aayi: ' + (err.message || err));
+      }
     }
 
     async function addNewSlot(e) {
       e.preventDefault();
-      const date = document.getElementById('slotDate').value;
-      const label = document.getElementById('slotLabel').value;
-      const limit = parseInt(document.getElementById('slotLimit').value);
+      var date = document.getElementById('slotDate').value;
+      var label = document.getElementById('slotLabel').value;
+      var limit = parseInt(document.getElementById('slotLimit').value);
 
-      const { error } = await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
-      if (error) {
-        alert('त्रुटि: ' + error.message);
-      } else {
-        alert('तारीख सफलता से जुड़ गई!');
+      var btn = document.getElementById('addSlotBtn');
+      btn.disabled = true;
+      btn.innerText = 'Publishing...';
+
+      try {
+        const { error } = await supabaseClient
+          .from('slots')
+          .insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
+
+        if (error) throw error;
+
+        alert('New Slot Published Successfully!');
+        document.getElementById('slotDate').value = '';
+        document.getElementById('slotLabel').value = '';
         loadAllData();
+
+      } catch (err) {
+        alert('Slot create karne me error: ' + (err.message || err));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot';
+        lucide.createIcons();
       }
     }
   </script>
