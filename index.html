@@ -3,38 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Appointment Token Slip Portal</title>
+  <title>टोकन पास पोर्टल - गुजरपार</title>
   
-  <!-- Premium Fonts for English and Hindi -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+  <!-- Poppins Font for Hindi & Outfit for English (Similar to Waitwhile) -->
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com"></script>
+  <script src="https://tailwindcss.com"></script>
+  <script src="https://cloudflare.com"></script>
+  <script src="https://jsdelivr.net"></script>
   
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body { 
-      background: #f1f5f9; 
+      background: #f8fafc; 
       color: #0f172a; 
       min-height: 100vh; 
-      font-family: 'Outfit', 'Hind', 'Tiro Devanagari Hindi', sans-serif; 
+      font-family: 'Poppins', 'Outfit', sans-serif; 
     }
-    .hindi-text { font-family: 'Tiro Devanagari Hindi', 'Hind', serif; }
-    .premium-card { background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
-    .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; }
-    .custom-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-    .date-box { border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
-    .date-box.available { background: #f0fdf4; border-color: #22c55e; }
-    .date-box.selected { background: #0f172a !important; border-color: #0284c7 !important; color: #ffffff !important; }
-    .date-box.selected .date-title, .date-box.selected .date-sub { color: #ffffff !important; }
-    .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
-    .btn-dark { background: #0f172a; color: #ffffff; }
-    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
-    .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
+    
+    .eng-font { font-family: 'Outfit', sans-serif; }
+    
+    .premium-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px -2px rgba(148, 163, 184, 0.12); }
+    .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
+    .custom-input:focus { border-color: #15803d; background: #ffffff; box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15); }
+    
+    /* शांत और प्रोफेशनल दिनांक बॉक्स स्टाईल */
+    .date-box { border: 1.5px solid #e2e8f0; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
+    .date-box.available { background: #ffffff; border-color: #e2e8f0; }
+    .date-box.available:hover { border-color: #15803d; }
+    .date-box.selected { background: #15803d !important; border-color: #15803d !important; color: #ffffff !important; }
+    .date-box.selected .date-title, 
+    .date-box.selected .date-sub,
+    .date-box.selected .progress-label { color: #ffffff !important; }
+    .date-box.selected .progress-bg { background: rgba(255, 255, 255, 0.2); }
+    .date-box.selected .progress-bar { background: #ffffff; }
+    .date-box.full { background: #fef2f2; border-color: #fca5a5; cursor: not-allowed; opacity: 0.75; }
+    
+    .btn-green { background: #15803d; color: #ffffff; transition: background 0.2s; }
+    .btn-green:hover { background: #115e59; }
+    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #1e293b; font-family: 'Poppins', 'Outfit', sans-serif; }
+    .photo-container { width: 75px; height: 75px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f1f5f9; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
 </head>
@@ -42,34 +53,32 @@
 
   <div class="w-full max-w-md mx-auto">
     
-    <div class="text-center mb-5">
-      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-900 shadow-md mb-2">
-        <i data-lucide="ticket" class="w-6 h-6 text-white"></i>
-      </div>
-      <h1 class="text-2xl font-black tracking-tight text-slate-900 hindi-text">टोकन पास पोर्टल</h1>
-      <p class="text-slate-600 text-xs font-bold mt-0.5 hindi-text">राशन वितरण ऑनलाइन बुकिंग</p>
+    <!-- हेडर सेक्शन -->
+    <div class="text-center mb-6 pt-4">
+      <h1 class="text-4xl font-extrabold tracking-tight text-slate-800 mb-1">टोकन पास पोर्टल</h1>
+      <p class="text-emerald-800 text-sm font-bold tracking-wide">📍 उचित दर दुकान (ई-पॉस सेवा) - ग्राम: गुजरपार</p>
     </div>
 
     <!-- Booking Form Screen -->
-    <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-7 space-y-5">
+    <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-6 space-y-5">
       <div>
-        <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2 hindi-text">बुकिंग तिथि चुनें (लाइव डेटा)</label>
+        <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2.5">वितरण तिथि एवं उपलब्ध टोकन (लाइव डेटा)</label>
         <div id="datesContainer" class="grid grid-cols-1 gap-2.5">
-          <div class="text-center text-xs text-slate-500 py-3 hindi-text">तारीखें लोड हो रही हैं...</div>
+          <div class="text-center text-xs text-slate-500 py-3">तारीखें लोड हो रही हैं...</div>
         </div>
       </div>
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">कार्डधारक का पूरा नाम (Full Name)</label>
           <div class="relative">
             <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="userName" required placeholder="अपना नाम दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
+            <input type="text" id="userName" required placeholder="राशन कार्ड के अनुसार नाम लिखें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">मोबाइल नंबर (10 अंक)</label>
           <div class="relative">
             <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
             <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
@@ -77,66 +86,70 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
+          <label class="block text-xs font-bold text-slate-600 tracking-wider mb-1">राशन कार्ड नंबर (12 अंक)</label>
           <div class="relative">
             <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
             <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);">
           </div>
         </div>
 
-        <button type="submit" id="submitBtn" class="btn-dark w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span class="hindi-text">टोकन बुक करें</span>
+        <button type="submit" id="submitBtn" class="btn-green w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>डिजिटल टोकन प्राप्त करें</span>
         </button>
       </form>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-500 leading-normal">
+        🔒 <strong>सूचना:</strong> यह पोर्टल केवल ग्राम <strong>गुजरपार</strong> के कोटेदार <strong>श्री कपिल देव यादव</strong> द्वारा राशन वितरण की कतार को व्यवस्थित करने हेतु बनाई गई एक स्थानीय व्यवस्था है। आपका डेटा पूरी तरह सुरक्षित है।
+      </div>
     </div>
 
     <!-- Printable Slip Screen -->
     <div id="ticketScreen" class="hidden">
       <div class="printable-slip rounded-3xl p-5 shadow-2xl relative overflow-hidden">
-        <h2 class="text-center text-xl font-black tracking-tight text-slate-900 mb-3 border-b-2 pb-2 border-slate-200">
-          Appointment Token Slip
+        <h2 class="text-center text-lg font-black tracking-tight text-slate-800 mb-3 border-b-2 pb-2 border-slate-200">
+          ई-पॉस राशन वितरण टोकन पर्ची
         </h2>
 
-        <div class="bg-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5 mb-4 border border-slate-300">
-          <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0">
+        <div class="bg-slate-50 rounded-2xl p-3 flex items-center gap-4 mb-4 border border-slate-200">
+          <div class="photo-container flex-shrink-0">
             <img id="kotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
           </div>
           <div>
-            <div class="text-red-600 font-black text-sm sm:text-base tracking-wide uppercase leading-tight">KOTEDAR - KAPIL DEV YADAV</div>
-            <div class="text-black font-extrabold text-xs tracking-widest mt-1">GUJARPAR</div>
+            <div class="text-slate-800 font-black text-sm tracking-wide uppercase leading-tight">कोटेदार: कपिल देव यादव</div>
+            <div class="text-emerald-800 font-bold text-xs tracking-wider mt-0.5">📍 दुकान कोड / ग्राम: गुजरपार</div>
           </div>
         </div>
 
-        <div class="border-2 border-dashed border-slate-900 rounded-2xl p-4 text-center my-3 bg-slate-50">
-          <p class="text-[11px] font-black tracking-widest uppercase text-slate-700 mb-1">TOKEN NUMBER</p>
-          <div class="text-3xl sm:text-4xl font-black tracking-wider text-black mb-0.5" id="slipTokenNo">-</div>
-          <div class="text-[11px] font-bold text-slate-600 mt-1 hindi-text" id="slipRationLastDigits">राशन अंतिम अंक: ----</div>
+        <div class="border-2 border-dashed border-emerald-700 rounded-2xl p-4 text-center my-3 bg-emerald-50/50">
+          <p class="text-[10px] font-black tracking-widest uppercase text-emerald-800 mb-1 eng-font">TOKEN NUMBER</p>
+          <div class="text-4xl font-black tracking-wider text-emerald-800 mb-0.5 eng-font" id="slipTokenNo">-</div>
+          <div class="text-sm font-bold text-slate-700 mt-1.5 tracking-wider eng-font" id="slipRationLastDigits">----</div>
         </div>
 
         <div class="text-xs space-y-2.5 mt-4 text-slate-900 font-semibold px-1">
           <div class="text-center bg-amber-50 p-3 rounded-xl border border-amber-200">
-            <span class="text-slate-700 font-bold block text-[11px] hindi-text">अनुमानित समय (Expected Time):</span>
-            <span class="text-slate-950 font-black text-base sm:text-lg block mt-0.5 hindi-text" id="slipTimeSlot">06:30 AM से 08:00 AM तक</span>
+            <span class="text-amber-800 font-bold block text-[11px]">⏱️ दुकान पर पहुँचने का संभावित समय:</span>
+            <span class="text-slate-900 font-black text-base block mt-0.5" id="slipTimeSlot">06:30 AM से 08:00 AM तक</span>
           </div>
 
-          <div class="pt-2 space-y-2 border-t border-slate-200 text-slate-900">
-            <p class="flex justify-between"><strong>Appointment Date:</strong> <span id="slipDate" class="font-bold text-black">-</span></p>
-            <p class="flex justify-between"><strong>Ration Card No:</strong> <span id="slipRationNo" class="font-bold text-black">-</span></p>
-            <p class="flex justify-between"><strong>Name:</strong> <span id="slipName" class="font-bold text-black">-</span></p>
-            <p class="flex justify-between"><strong>Mobile:</strong> <span id="slipPhone" class="font-bold text-black">-</span></p>
-            <p class="flex justify-between"><strong>Generated On:</strong> <span id="slipGeneratedOn" class="font-semibold text-slate-600">-</span></p>
+          <div class="pt-2 space-y-2 border-t border-slate-200 text-slate-700 text-sm">
+            <p class="flex justify-between"><span>तारीख (Date):</span> <span id="slipDate" class="font-bold text-slate-900 eng-font">-</span></p>
+            <p class="flex justify-between"><span>राशन कार्ड संख्या:</span> <span id="slipRationNo" class="font-bold text-slate-900 eng-font">-</span></p>
+            <p class="flex justify-between"><span>नाम (Name):</span> <span id="slipName" class="font-bold text-slate-900 uppercase">-</span></p>
+            <p class="flex justify-between"><span>मोबाइल नंबर:</span> <span id="slipPhone" class="font-bold text-slate-900 eng-font">-</span></p>
+            <p class="flex justify-between text-xs text-slate-500"><span>टोकन जारी समय:</span> <span id="slipGeneratedOn" class="eng-font">-</span></p>
           </div>
 
-          <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-600 italic leading-tight text-center hindi-text">
-            <strong>नोट:</strong> कृपया अपने दिए गए समय पर उपस्थित होने का कष्ट करें।
+          <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-500 italic leading-tight text-center">
+            📌 <strong>अनुरोध:</strong> भीड़ से बचने के लिए कृपया अपने निर्धारित समय स्लॉट पर ही दुकान पर आएं।
           </div>
         </div>
       </div>
 
       <div class="mt-4">
-        <button onclick="downloadAsJPG()" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 text-sm font-bold text-white flex items-center justify-center gap-2 shadow-md transition">
-          <i data-lucide="image-down" class="w-5 h-5"></i> <span class="hindi-text">JPG डाउनलोड करें</span>
+        <button onclick="downloadAsJPG()" class="w-full py-3.5 px-4 rounded-xl bg-slate-800 text-sm font-bold text-white flex items-center justify-center gap-2 shadow-sm transition">
+          <i data-lucide="image-down" class="w-5 h-5"></i> <span>पर्ची (JPG इमेज) डाउनलोड करें</span>
         </button>
       </div>
     </div>
@@ -146,218 +159,6 @@
   <script>
     lucide.createIcons();
 
-    // Supabase Credentials
-    const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
+    const SUPABASE_URL = "https://supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    var RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
-    var selectedDate = '';
-    var isBookingInProgress = false;
-
-    window.addEventListener('beforeunload', function (e) {
-      if (isBookingInProgress) {
-        e.preventDefault();
-        e.returnValue = 'टोकन बुकिंग प्रक्रिया में है, क्या आप बाहर जाना चाहते हैं?';
-      }
-    });
-
-    window.onload = function() {
-      var imgElem = document.getElementById('kotedarImg');
-      imgElem.src = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
-      loadSlotsData();
-    };
-
-    function getNameInitials(fullName) {
-      if (!fullName) return 'TK';
-      var parts = fullName.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      } else if (parts.length === 1 && parts[0].length > 0) {
-        return parts[0][0].toUpperCase();
-      }
-      return 'TK';
-    }
-
-    async function loadSlotsData() {
-      try {
-        const { data: slotsList, error } = await supabaseClient
-          .from('slots')
-          .select('*')
-          .order('date', { ascending: true });
-
-        if (error) throw error;
-        renderDateBoxes(slotsList);
-      } catch (err) {
-        console.error(err);
-        document.getElementById('datesContainer').innerHTML = '<div class="text-center text-xs text-red-500 py-3 hindi-text">तारीखें लोड करने में विफल!</div>';
-      }
-    }
-
-    function renderDateBoxes(slotsList) {
-      var container = document.getElementById('datesContainer');
-      container.innerHTML = '';
-
-      if (!slotsList || slotsList.length === 0) {
-        container.innerHTML = '<div class="text-center text-xs text-slate-500 py-3 hindi-text">अभी कोई तारीख उपलब्ध नहीं है।</div>';
-        return;
-      }
-
-      slotsList.forEach(function(item) {
-        var booked = item.booked_count || 0;
-        var limit = item.limit_count || 200;
-        var left = limit - booked;
-        var isFull = left <= 0;
-
-        var statusClass = isFull ? 'full' : 'available';
-        var statusText = isFull ? 'FULL (0 टोकन बाकी)' : left + ' टोकन उपलब्ध (' + limit + ' में से)';
-
-        var box = document.createElement('div');
-        box.className = 'date-box ' + statusClass + ' p-3.5 rounded-2xl flex items-center justify-between shadow-sm';
-        
-        if (!isFull) {
-          box.onclick = function() { selectDate(this, item.date); };
-        }
-
-        box.innerHTML = 
-          '<div>' +
-            '<div class="text-sm font-black date-title text-slate-900 hindi-text">📅 ' + (item.label || item.date) + '</div>' +
-            '<div class="text-xs font-extrabold ' + (isFull ? 'text-red-600' : 'text-emerald-700') + ' mt-0.5 date-sub hindi-text">' + statusText + '</div>' +
-          '</div>' +
-          '<div class="text-xs font-bold">' +
-            (isFull ? '<span class="text-red-600 bg-red-100 px-2.5 py-1 rounded-lg hindi-text">फुल</span>' : '<span class="text-slate-900 bg-slate-200 px-2.5 py-1 rounded-lg hindi-text">चुनें ➔</span>') +
-          '</div>';
-
-        container.appendChild(box);
-      });
-    }
-
-    function selectDate(element, date) {
-      var allBoxes = document.querySelectorAll('.date-box');
-      allBoxes.forEach(function(el) { el.classList.remove('selected'); });
-      element.classList.add('selected');
-      selectedDate = date;
-    }
-
-    async function handleBooking(event) {
-      event.preventDefault();
-
-      if (!selectedDate) {
-        alert('कृपया बुकिंग की तारीख चुनें!');
-        return;
-      }
-
-      var name = document.getElementById('userName').value.trim();
-      var phone = document.getElementById('userPhone').value.trim();
-      var ration = document.getElementById('userRation').value.trim();
-
-      var btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="hindi-text">टोकन जनरेट हो रहा है...</span>';
-      isBookingInProgress = true;
-
-      try {
-        // Count bookings SPECIFIC to the SELECTED DATE ONLY
-        const { count, error: countErr } = await supabaseClient
-          .from('bookings')
-          .select('*', { count: 'exact', head: true })
-          .eq('token_date', selectedDate);
-
-        if (countErr) throw countErr;
-
-        var tokenSeq = (count || 0) + 1;
-
-        if (tokenSeq > 200) {
-          alert('क्षमा करें, इस तारीख के सभी 200 टोकन बुक हो चुके हैं!');
-          location.reload();
-          return;
-        }
-
-        var initials = getNameInitials(name);
-        var formattedNum = String(tokenSeq).padStart(3, '0');
-        var fullTokenString = initials + "-" + formattedNum;
-
-        const { error: insertErr } = await supabaseClient
-          .from('bookings')
-          .insert([
-            {
-              name: name,
-              phone: phone,
-              card: ration,
-              token_date: selectedDate,
-              token_number: tokenSeq
-            }
-          ]);
-
-        if (insertErr) throw insertErr;
-
-        await supabaseClient
-          .from('slots')
-          .update({ booked_count: tokenSeq })
-          .eq('date', selectedDate);
-
-        isBookingInProgress = false;
-        onSuccess({
-          tokenDisplay: fullTokenString,
-          rationNo: ration,
-          expectedTime: "06:30 AM से 08:00 AM तक",
-          date: selectedDate,
-          name: name,
-          phone: phone
-        });
-
-      } catch (err) {
-        isBookingInProgress = false;
-        onFailure(err);
-      }
-    }
-
-    function onSuccess(res) {
-      document.getElementById('bookingScreen').classList.add('hidden');
-      document.getElementById('ticketScreen').classList.remove('hidden');
-
-      document.getElementById('slipTokenNo').innerText = res.tokenDisplay;
-      
-      var last4 = res.rationNo ? res.rationNo.slice(-4) : "----";
-      document.getElementById('slipRationLastDigits').innerText = "राशन अंतिम अंक: " + last4;
-
-      document.getElementById('slipRationNo').innerText = res.rationNo;
-      document.getElementById('slipTimeSlot').innerText = res.expectedTime;
-      document.getElementById('slipDate').innerText = res.date;
-      document.getElementById('slipName').innerText = res.name;
-      document.getElementById('slipPhone').innerText = res.phone;
-
-      var now = new Date();
-      document.getElementById('slipGeneratedOn').innerText = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      lucide.createIcons();
-    }
-
-    function onFailure(err) {
-      alert(err.message || "त्रुटि: सबमिट करने में समस्या आई!");
-      var btn = document.getElementById('submitBtn');
-      btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span class="hindi-text">टोकन बुक करें</span>';
-      lucide.createIcons();
-    }
-
-    function downloadAsJPG() {
-      var slipElement = document.querySelector('.printable-slip');
-      var tokenNo = document.getElementById('slipTokenNo').innerText || 'Token';
-
-      html2canvas(slipElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      }).then(function(canvas) {
-        var image = canvas.toDataURL("image/jpeg", 0.95);
-        var link = document.createElement('a');
-        link.download = 'Token_' + tokenNo + '.jpg';
-        link.href = image;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-    }
-  </script>
-</body>
-</html>
+    
