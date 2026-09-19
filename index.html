@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Appointment Token Slip Portal</title>
   
-  <!-- Premium Fonts: Poppins for Hindi & Outfit for English -->
+  <!-- Premium Fonts Setup (Poppins for Hindi & Outfit for English) -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- आपकी पुरानी ओरिजिनल सुपर-फास्ट लाइब्रेरीज़ -->
   <script src="https://unpkg.com"></script>
   <script src="https://tailwindcss.com"></script>
   <script src="https://cloudflare.com"></script>
@@ -29,7 +28,7 @@
     .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; font-family: 'Outfit', sans-serif; }
     .custom-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
     
-    /* आपकी ओरिजिनल तारीख बॉक्स डिज़ाइन */
+    /* आपकी ओरिजिनल दिनांक बॉक्स स्टाइल */
     .date-box { border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
     .date-box.available { background: #f0fdf4; border-color: #22c55e; }
     .date-box.selected { background: #0f172a !important; border-color: #0284c7 !important; color: #ffffff !important; }
@@ -48,7 +47,7 @@
 
   <div class="w-full max-w-md mx-auto">
     
-    <!-- आपकी डिमांड के अनुसार: सिंबल गायब और पोर्टल का नाम काफी बड़ा -->
+    <!-- आपकी मांग: सिंबल हटाकर पोर्टल का नाम बड़ा (text-4xl) किया गया है -->
     <div class="text-center mb-5 pt-4">
       <h1 class="text-4xl font-black tracking-tight text-slate-900 mb-1">टोकन पास पोर्टल</h1>
       <p class="text-slate-600 text-xs font-bold mt-0.5">राशन वितरण ऑनलाइन बुकिंग</p>
@@ -168,4 +167,207 @@
 
     window.onload = function() {
       var imgElem = document.getElementById('kotedarImg');
-    
+      imgElem.src = "https://weserv.nl" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      loadSlotsData();
+    };
+
+    function getNameInitials(fullName) {
+      if (!fullName) return 'TK';
+      var nameParts = fullName.trim().split(/\s+/);
+      if (nameParts.length >= 2) {
+        return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+      } else if (nameParts.length === 1 && nameParts.length > 0) {
+        return nameParts[0].substring(0, 2).toUpperCase();
+      }
+      return 'TK';
+    }
+
+    async function loadSlotsData() {
+      try {
+        const { data: slotsList, error } = await supabaseClient
+          .from('slots')
+          .select('*')
+          .order('date', { ascending: true });
+
+        if (error) throw error;
+        renderDateBoxes(slotsList);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('datesContainer').innerHTML = '<div class="text-center text-xs text-red-500 py-3">तारीखें लोड करने में विफल!</div>';
+      }
+    }
+
+    function renderDateBoxes(slotsList) {
+      var container = document.getElementById('datesContainer');
+      container.innerHTML = '';
+
+      if (!slotsList || slotsList.length === 0) {
+        container.innerHTML = '<div class="text-center text-xs text-slate-500 py-3">अभी कोई तारीख उपलब्ध नहीं है।</div>';
+        return;
+      }
+
+      slotsList.forEach(function(item) {
+        var booked = item.booked_count || 0;
+        var limit = item.limit_count || 200;
+        var left = limit - booked;
+        var isFull = left <= 0;
+
+        var progressPercent = Math.min((booked / limit) * 100, 100);
+        var statusClass = isFull ? 'full' : 'available';
+        var statusText = isFull ? 'सभी टोकन फुल हैं' : left + ' टोकन उपलब्ध (' + limit + ' में से)';
+
+        var box = document.createElement('div');
+        box.className = 'date-box ' + statusClass + ' p-3.5 rounded-2xl flex flex-col gap-2 shadow-sm';
+        
+        if (!isFull) {
+          box.onclick = function() { selectDate(this, item.date); };
+        }
+
+        box.innerHTML = 
+          '<div class="flex items-center justify-between w-full">' +
+            '<div>' +
+              '<div class="text-sm font-black date-title text-slate-900">📅 ' + (item.label || item.date) + '</div>' +
+              '<div class="text-xs font-bold text-emerald-700 mt-0.5 date-sub">' + statusText + '</div>' +
+            '</div>' +
+            '<div class="text-xs font-bold">' +
+              (isFull ? '<span class="text-red-600 bg-red-100 px-2.5 py-1 rounded-lg">फुल</span>' : '<span class="text-slate-900 bg-slate-200 px-2.5 py-1 rounded-lg">चुनें ➔</span>') +
+            '</div>' +
+          '</div>' +
+          '<div class="w-full mt-1">' +
+            '<div class="progress-bg w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">' +
+              '<div class="progress-bar ' + (isFull ? 'bg-red-500' : 'bg-emerald-600') + ' h-1.5 transition-all duration-300" style="width: ' + progressPercent + '%"></div>' +
+            '</div>' +
+          '</div>';
+
+        container.appendChild(box);
+      });
+    }
+
+    function selectDate(element, date) {
+      var allBoxes = document.querySelectorAll('.date-box');
+      allBoxes.forEach(function(el) { el.classList.remove('selected'); });
+      element.classList.add('selected');
+      selectedDate = date;
+    }
+
+    async function handleBooking(event) {
+      event.preventDefault();
+
+      if (!selectedDate) {
+        alert('कृपया बुकिंग की तारीख चुनें!');
+        return;
+      }
+
+      var name = document.getElementById('userName').value.trim();
+      var phone = document.getElementById('userPhone').value.trim();
+      var ration = document.getElementById('userRation').value.trim();
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>टोकन जेनरेट हो रहा है...</span>';
+      isBookingInProgress = true;
+
+      try {
+        const { count, error: countErr } = await supabaseClient
+          .from('bookings')
+          .select('*', { count: 'exact', head: true })
+          .eq('token_date', selectedDate);
+
+        if (countErr) throw countErr;
+
+        var tokenSeq = (count || 0) + 1;
+
+        if (tokenSeq > 200) {
+          alert('क्षमा करें, इस तारीख के सभी टोकन बुक हो चुके हैं!');
+          location.reload();
+          return;
+        }
+
+        var initials = getNameInitials(name);
+        var formattedNum = String(tokenSeq).padStart(3, '0');
+        var fullTokenString = initials + "-" + formattedNum;
+
+        const { error: insertErr } = await supabaseClient
+          .from('bookings')
+          .insert([
+            {
+              name: name,
+              phone: phone,
+              card: ration,
+              token_date: selectedDate,
+              token_number: tokenSeq
+            }
+          ]);
+
+        if (insertErr) throw insertErr;
+
+        await supabaseClient
+          .from('slots')
+          .update({ booked_count: tokenSeq })
+          .eq('date', selectedDate);
+
+        isBookingInProgress = false;
+        onSuccess({
+          tokenDisplay: fullTokenString,
+          rationNo: ration,
+          expectedTime: "06:30 AM से 08:00 AM तक",
+          date: selectedDate,
+          name: name,
+          phone: phone
+        });
+
+      } catch (err) {
+        isBookingInProgress = false;
+        onFailure(err);
+      }
+    }
+
+    function onSuccess(res) {
+      document.getElementById('bookingScreen').classList.add('hidden');
+      document.getElementById('ticketScreen').classList.remove('hidden');
+
+      document.getElementById('slipTokenNo').innerText = res.tokenDisplay;
+      
+      var last4 = res.rationNo ? res.rationNo.slice(-4) : "----";
+      document.getElementById('slipRationLastDigits').innerText = last4;
+
+      document.getElementById('slipRationNo').innerText = res.rationNo;
+      document.getElementById('slipTimeSlot').innerText = res.expectedTime;
+      document.getElementById('slipDate').innerText = res.date;
+      document.getElementById('slipName').innerText = res.name;
+      document.getElementById('slipPhone').innerText = res.phone;
+
+      var now = new Date();
+      document.getElementById('slipGeneratedOn').innerText = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      lucide.createIcons();
+    }
+
+    function onFailure(err) {
+      alert(err.message || "त्रुटि: सबमिट करने में समस्या आई!");
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span>टोकन बुक करें</span>';
+      lucide.createIcons();
+    }
+
+    function downloadAsJPG() {
+      var slipElement = document.querySelector('.printable-slip');
+      var tokenNo = document.getElementById('slipTokenNo').innerText || 'Token';
+
+      html2canvas(slipElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }).then(function(canvas) {
+        var image = canvas.toDataURL("image/jpeg", 0.95);
+        var link = document.createElement('a');
+        link.download = 'Token_' + tokenNo + '.jpg';
+        link.href = image;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+  </script>
+</body>
+</html>
