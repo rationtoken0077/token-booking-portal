@@ -33,7 +33,29 @@
     .date-box.selected .date-title, .date-box.selected .date-sub { color: #ffffff !important; }
     .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
     .btn-dark { background: #0f172a; color: #ffffff; }
+    
+    /* Standard White Ticket */
     .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
+    
+    /* Professional Red Card Ticket Theme */
+    .printable-slip.red-card-theme {
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important;
+      border: 2px solid #b91c1c !important;
+      box-shadow: 0 15px 30px -5px rgba(185, 28, 28, 0.2) !important;
+    }
+    .printable-slip.red-card-theme .slip-header-title {
+      color: #991b1b !important;
+      border-bottom-color: #fca5a5 !important;
+    }
+    .printable-slip.red-card-theme .kotedar-card-box {
+      background: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+    }
+    .printable-slip.red-card-theme .token-box-container {
+      background: #ffffff !important;
+      border-color: #dc2626 !important;
+    }
+
     .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
     .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
@@ -58,17 +80,7 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- Ration Card Input (First for easy Auto-Fetch) -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
-          <div class="relative">
-            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="handleRationInput(this)">
-          </div>
-          <div id="cardMatchStatus" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
-        </div>
-
-        <!-- Name Input -->
+        <!-- Full Name Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
           <div class="relative">
@@ -77,13 +89,23 @@
           </div>
         </div>
 
-        <!-- Mobile Input -->
+        <!-- Mobile Number Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
           <div class="relative">
             <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
             <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
           </div>
+        </div>
+
+        <!-- Ration Card Number Input (Auto-Fetch Enabled) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
+          <div class="relative">
+            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
+          </div>
+          <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
         <button type="submit" id="submitBtn" class="btn-dark w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
@@ -95,12 +117,12 @@
 
     <!-- Printable Slip Screen -->
     <div id="ticketScreen" class="hidden">
-      <div class="printable-slip rounded-3xl p-5 shadow-2xl relative overflow-hidden">
-        <h2 class="text-center text-xl font-black tracking-tight text-slate-900 mb-3 border-b-2 pb-2 border-slate-200">
+      <div id="slipCardElement" class="printable-slip rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+        <h2 class="slip-header-title text-center text-xl font-black tracking-tight text-slate-900 mb-3 border-b-2 pb-2 border-slate-200">
           Appointment Token Slip
         </h2>
 
-        <div class="bg-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5 mb-4 border border-slate-300">
+        <div class="kotedar-card-box bg-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5 mb-4 border border-slate-300">
           <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0">
             <img id="kotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
           </div>
@@ -110,7 +132,7 @@
           </div>
         </div>
 
-        <div class="border-2 border-dashed border-slate-900 rounded-2xl p-4 text-center my-3 bg-slate-50">
+        <div class="token-box-container border-2 border-dashed border-slate-900 rounded-2xl p-4 text-center my-3 bg-slate-50">
           <p class="text-[11px] font-black tracking-widest uppercase text-slate-700 mb-1">TOKEN NUMBER</p>
           <div class="text-3xl sm:text-4xl font-black tracking-wider text-black mb-0.5" id="slipTokenNo">-</div>
           <div class="text-sm font-black text-slate-900 mt-1" id="slipRationLastDigits">----</div>
@@ -156,32 +178,98 @@
     var RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
     var selectedDate = '';
     var isBookingInProgress = false;
+    var isCurrentCardRed = false;
 
-    // Local Ration Card Records Database (Auto-Fetch Mapping)
-    const rationCardsDatabase = {
-        "212010186726": { holderName: "राम देवी", fatherName: "लालमन मौर्य", units: 4 },
-        "212010186727": { holderName: "शीला", fatherName: "राम कुमार", units: 3 },
-        "212010186728": { holderName: "मुन्नी देवी", fatherName: "राकेश चंद्र", units: 6 },
-        "212010186729": { holderName: "सुनीता देवी", fatherName: "सुरेश कुमार", units: 5 },
-        "212010186730": { holderName: "अनिता देवी", fatherName: "दिनेश वर्मा", units: 2 }
+    // 257 Antyodaya (Red Card) Database Integrated
+    const redRationCards = {
+      "21XXXXXX0177": "राधिका", "21XXXXXX0694": "रुना देवी", "21XXXXXX8940": "लालती", "21XXXXXX9894": "फूलबासी",
+      "21XXXXXX5294": "सविता देवी", "21XXXXXX2846": "फूलमती", "21XXXXXX2046": "चम्पा", "21XXXXXX2047": "फेकनी",
+      "21XXXXXX2840": "निर्मला", "21XXXXXX3127": "राजमती", "21XXXXXX5297": "परंजोती देवी", "21XXXXXX9857": "पतिक",
+      "21XXXXXX3220": "राधिका", "21XXXXXX9855": "फूलमती", "21XXXXXX2855": "सावित्री", "21XXXXXX2045": "चम्पा",
+      "21XXXXXX5708": "फूला देवी", "21XXXXXX9853": "देवती देवी", "21XXXXXX2837": "गुलैची", "21XXXXXX4830": "राधिका",
+      "21XXXXXX2408": "रजौती देवी", "21XXXXXX9883": "केशरी", "21XXXXXX9252": "नीतू सिंह", "21XXXXXX1639": "मन्ती",
+      "21XXXXXX1615": "शारदा देवी", "21XXXXXX6731": "ॐ प्रकाश", "21XXXXXX4822": "बच्ची देवी", "21XXXXXX9905": "श्रीमती देवी",
+      "21XXXXXX2850": "फूलमती", "21XXXXXX4044": "अमरनाथ विश्वकर्मा", "21XXXXXX4837": "रमावती देवी", "21XXXXXX5316": "मिंटू",
+      "21XXXXXX6710": "अनीता भारती", "21XXXXXX9860": "मीना देवी", "21XXXXXX1229": "ममता", "21XXXXXX9911": "सोनमती देवी",
+      "21XXXXXX2049": "लक्ष्मीना देवी", "21XXXXXX9863": "मनोरमा यादव", "21XXXXXX9871": "रमपति", "21XXXXXX0793": "राधिका",
+      "21XXXXXX6307": "रामलाल", "21XXXXXX6717": "गणपति", "21XXXXXX4691": "प्रमिला खरवार", "21XXXXXX0754": "शांति",
+      "21XXXXXX1222": "प्रभु", "21XXXXXX2041": "इन्द्रवती देवी", "21XXXXXX0181": "सीमा", "21XXXXXX3195": "उषा",
+      "21XXXXXX0276": "कुसिया देवी", "21XXXXXX5300": "चंदे देवी", "21XXXXXX9885": "कदामी यादव", "21XXXXXX1614": "दुब्बर यादव",
+      "21XXXXXX5712": "कलावती", "21XXXXXX9873": "शीला देवी", "21XXXXXX0328": "अरविन्द कुमार", "21XXXXXX6718": "बीमा देवी",
+      "21XXXXXX2826": "सुभावती", "21XXXXXX2852": "मालती", "21XXXXXX9901": "रामवती देवी", "21XXXXXX3091": "उर्मिला",
+      "21XXXXXX7932": "राधिका", "21XXXXXX0345": "बादामी", "21XXXXXX6715": "जगधारी मौर्या", "21XXXXXX4958": "कन्हाई राम",
+      "21XXXXXX1299": "लालू पासवान", "21XXXXXX4724": "कतवारू", "21XXXXXX1613": "प्रमोद कुमार", "21XXXXXX2851": "प्रीति देवी",
+      "21XXXXXX9884": "कौसील्या देवी", "21XXXXXX2857": "शकुन्तला देवी", "21XXXXXX3063": "श्यामदुलारी", "21XXXXXX5311": "लालमुनी",
+      "21XXXXXX6716": "जितलू राम", "21XXXXXX9900": "रामप्यारी देवी", "21XXXXXX6727": "राकेश मौर्य", "21XXXXXX0914": "फूलमती",
+      "21XXXXXX2671": "विद्यावती देवी", "21XXXXXX4857": "लाखाराम", "21XXXXXX2844": "जगवंती देवी", "21XXXXXX5296": "धनपति देवी",
+      "21XXXXXX8273": "मंजू", "21XXXXXX6720": "दयानंद", "21XXXXXX6339": "मेवाती", "21XXXXXX9888": "चंद्रावती",
+      "21XXXXXX2841": "ज्ञान मती देवी", "21XXXXXX1551": "गुलाइची देवी", "21XXXXXX2848": "मीरा खरवार", "21XXXXXX8460": "श्यामजी पाण्डेय",
+      "21XXXXXX9893": "दुर्गावती देवी", "21XXXXXX6729": "मंगल", "21XXXXXX9870": "रामकरन", "21XXXXXX4815": "चिंता",
+      "21XXXXXX9896": "मेहंदी", "21XXXXXX0816": "दिव्या सिंह", "21XXXXXX2894": "लड्डू साहनी", "21XXXXXX9668": "शाफी देवी",
+      "21XXXXXX8917": "निर्मला", "21XXXXXX4806": "उषा देवी", "21XXXXXX1616": "लचिया देवी", "21XXXXXX2042": "किसमतिया",
+      "21XXXXXX9902": "राधा देवी", "21XXXXXX9872": "लालती देवी", "21XXXXXX9867": "लखपति देवी", "21XXXXXX0698": "शारदा",
+      "21XXXXXX4386": "जिनवती देवी", "21XXXXXX4827": "बचिया देवी", "21XXXXXX1287": "उषा देवी", "21XXXXXX4692": "पार्वती",
+      "21XXXXXX6713": "उमाकांत", "21XXXXXX9895": "फुलकुमारी", "21XXXXXX2055": "मनोरमा देवी", "21XXXXXX9890": "धनपति",
+      "21XXXXXX1216": "परमी", "21XXXXXX6733": "सुनील गोंड", "21XXXXXX9899": "ममता देवी", "21XXXXXX6722": "राजेश",
+      "21XXXXXX9854": "चंद्रधारी", "21XXXXXX9869": "रामधारी", "21XXXXXX5586": "मूरति", "21XXXXXX9897": "रूपा देवी",
+      "21XXXXXX2895": "मालती", "21XXXXXX7534": "सुमन यादव", "21XXXXXX2092": "असरफी", "21XXXXXX9898": "मन्ती",
+      "21XXXXXX4308": "बतासी", "21XXXXXX6714": "बाबूलाल", "21XXXXXX6719": "बाबूलाल", "21XXXXXX2768": "शकुन्तला यादव",
+      "21XXXXXX2091": "कैलासी देवी", "21XXXXXX9906": "शांति", "21XXXXXX4703": "सुगिया", "21XXXXXX9049": "कलंदर राम",
+      "21XXXXXX2858": "सोना देवी", "21XXXXXX2727": "चंद्रज्योति", "21XXXXXX9847": "इंद्रावती देवी", "21XXXXXX2690": "सुशीला देवी",
+      "21XXXXXX9865": "राधे", "21XXXXXX9861": "मीला देवी", "21XXXXXX9658": "राधिका", "21XXXXXX9856": "आशा देवी",
+      "21XXXXXX2044": "ज्ञानमती देवी", "21XXXXXX3197": "सुभावती", "21XXXXXX2838": "कुसुम साहनी", "21XXXXXX6721": "रूमा",
+      "21XXXXXX2679": "सीमा कुमारी", "21XXXXXX6737": "सीमा पासवान", "21XXXXXX9886": "कोइली", "21XXXXXX2853": "मुनाकी देवी",
+      "21XXXXXX9645": "रीता देवी", "21XXXXXX9909": "सकीला देवी", "21XXXXXX2765": "मालती", "21XXXXXX2043": "रघुनन्दन विश्वकर्मा",
+      "21XXXXXX5461": "सुदामी", "21XXXXXX0739": "राम अवध", "21XXXXXX4723": "कंचन मौर्या", "21XXXXXX6730": "रविन्द्र यादव",
+      "21XXXXXX2056": "मेवाती", "21XXXXXX3723": "चन्द्रमी", "21XXXXXX4735": "करिशमा गोंड", "21XXXXXX2839": "इन्द्रावती देवी",
+      "21XXXXXX6726": "रमाकांत", "21XXXXXX1552": "उषा देवी", "21XXXXXX9259": "सोनी", "21XXXXXX9876": "लालमुनी",
+      "21XXXXXX9891": "नौरंगी चौरसिया", "21XXXXXX5702": "मालती", "21XXXXXX9864": "मालती देवी", "21XXXXXX0931": "वीना यादव",
+      "21XXXXXX2893": "परमशीला", "21XXXXXX9907": "शंकर", "21XXXXXX2845": "गीता यादव", "21XXXXXX9798": "निर्मला",
+      "21XXXXXX9875": "लालमति देवी", "21XXXXXX2911": "अनीता देवी", "21XXXXXX4836": "मीना देवी", "21XXXXXX6711": "प्रियंका",
+      "21XXXXXX5299": "लाली यादव", "21XXXXXX2668": "सुभराजी", "21XXXXXX9910": "सतिया देवी", "21XXXXXX6723": "रामधारी प्रजापति",
+      "21XXXXXX9877": "सुभावती", "21XXXXXX2940": "रामजनम", "21XXXXXX8275": "लखपती", "21XXXXXX5704": "विद्या देवी",
+      "21XXXXXX9692": "मेवाती", "21XXXXXX6725": "रामबचन", "21XXXXXX4812": "चम्पा", "21XXXXXX9903": "राजरती देवी",
+      "21XXXXXX5924": "बुचिया", "21XXXXXX1612": "पुष्पा देवी", "21XXXXXX3175": "धर्मी", "21XXXXXX2856": "लालती",
+      "21XXXXXX6338": "सतिया", "21XXXXXX2854": "रमावती देवी", "21XXXXXX3457": "भगवानी देवी", "21XXXXXX6724": "लाखराम",
+      "21XXXXXX9850": "कमली", "21XXXXXX9874": "सन्ति", "21XXXXXX8760": "तेजराम सोनकर", "21XXXXXX9848": "इंद्रावती",
+      "21XXXXXX0770": "शारदा", "21XXXXXX2053": "लालसा देवी", "21XXXXXX4704": "हौसीला", "21XXXXXX4832": "मीना देवी",
+      "21XXXXXX2843": "गुट्टी देवी", "21XXXXXX9866": "रेखा देवी", "21XXXXXX1298": "शीला देवी", "21XXXXXX4821": "बतासी",
+      "21XXXXXX5710": "फौजदार यादव", "21XXXXXX1617": "राधिका", "21XXXXXX8001": "कमली देवी", "21XXXXXX9593": "सवरू",
+      "21XXXXXX2050": "रीता प्रजापति", "21XXXXXX6728": "लखपतिय", "21XXXXXX9882": "हरिनाथ", "21XXXXXX1307": "चमेली",
+      "21XXXXXX5298": "रामभवन", "21XXXXXX2082": "मनभावती", "21XXXXXX2842": "इन्द्रावती देवी", "21XXXXXX9852": "गीता देवी",
+      "21XXXXXX9868": "रीता", "21XXXXXX9889": "एंटी देवी", "21XXXXXX9887": "गुड्डी देवी", "21XXXXXX3071": "धर्मी देवी",
+      "21XXXXXX5815": "बचिया", "21XXXXXX4811": "पुष्पा", "21XXXXXX3231": "सोनमती", "21XXXXXX8672": "बालमति",
+      "21XXXXXX9880": "अनवरी देवी", "21XXXXXX5295": "निर्मला सोनकर", "21XXXXXX2847": "पलटन", "21XXXXXX2051": "सुरती देवी",
+      "21XXXXXX2849": "राजपति देवी", "21XXXXXX2048": "उषा देवी", "21XXXXXX1152": "उषा", "21XXXXXX9879": "सुरेंद्र राम",
+      "21XXXXXX2713": "मीना देवी", "21XXXXXX9626": "इन्द्रावती", "21XXXXXX5705": "मंजू देवी", "21XXXXXX6732": "सुरेश चन्द्र खरवार",
+      "21XXXXXX9862": "मंटू सोनकर", "21XXXXXX9282": "प्रियंका", "21XXXXXX6734": "सरिता", "21XXXXXX0801": "उर्मिला देवी",
+      "21XXXXXX4858": "शांति देवी", "21XXXXXX9858": "पूनम", "21XXXXXX9878": "सूरज", "21XXXXXX9851": "इसरावती",
+      "21XXXXXX5707": "मेवाती देवी", "21XXXXXX5643": "प्रेमा देवी", "21XXXXXX2052": "संतोसी", "21XXXXXX6735": "हरिश्चन्द्र यादव",
+      "21XXXXXX9859": "निरंजनी", "21XXXXXX9849": "गंगा", "21XXXXXX2054": "रामकरण यादव", "21XXXXXX6736": "हिरामुनी"
     };
 
-    // Auto-Fetch Function
-    function handleRationInput(input) {
+    // Automatic Name & Red Card Detection Function
+    function autoFetchCardName(input) {
       input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
       var cardNo = input.value.trim();
       var nameInput = document.getElementById('userName');
-      var statusBox = document.getElementById('cardMatchStatus');
+      var statusBox = document.getElementById('cardStatusMsg');
+      
+      isCurrentCardRed = false;
 
       if (cardNo.length === 12) {
-        if (rationCardsDatabase[cardNo]) {
-          var record = rationCardsDatabase[cardNo];
-          nameInput.value = record.holderName;
-          statusBox.innerText = "✓ कार्डधारक का नाम: " + record.holderName;
-          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
+        // First check in Red Card Database
+        var maskedCardKey = cardNo.slice(0, 2) + "XXXXXX" + cardNo.slice(8);
+        
+        if (redRationCards[cardNo] || redRationCards[maskedCardKey]) {
+          var matchedName = redRationCards[cardNo] || redRationCards[maskedCardKey];
+          nameInput.value = matchedName;
+          isCurrentCardRed = true;
+          statusBox.innerText = "✓ अंत्योदय (Red Card) - नाम: " + matchedName;
+          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
         } else {
-          statusBox.innerText = "• कार्ड डेटाबेस में नहीं है (कृपया नाम स्वयं लिखें)";
-          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-amber-600 block";
+          statusBox.innerText = "• सामान्य कार्ड दर्ज किया गया";
+          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
         }
       } else {
         statusBox.className = "hidden";
@@ -263,7 +351,6 @@
               (isFull ? '<span class="text-red-600 bg-red-100 px-2.5 py-1 rounded-lg hindi-text">फुल</span>' : '<span class="text-slate-900 bg-slate-200 px-2.5 py-1 rounded-lg hindi-text">चुनें ➔</span>') +
             '</div>' +
           '</div>' +
-          '<!-- Live Progress Bar -->' +
           '<div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">' +
             '<div class="' + (isFull ? 'bg-red-500' : 'bg-emerald-500') + ' h-full transition-all duration-500" style="width: ' + percent + '%"></div>' +
           '</div>';
@@ -355,6 +442,15 @@
       document.getElementById('bookingScreen').classList.add('hidden');
       document.getElementById('ticketScreen').classList.remove('hidden');
 
+      var slipCard = document.getElementById('slipCardElement');
+      
+      // Dynamic Red Card Background Theme Application
+      if (isCurrentCardRed) {
+        slipCard.classList.add('red-card-theme');
+      } else {
+        slipCard.classList.remove('red-card-theme');
+      }
+
       document.getElementById('slipTokenNo').innerText = res.tokenDisplay;
       
       var last4 = res.rationNo ? res.rationNo.slice(-4) : "----";
@@ -380,13 +476,13 @@
     }
 
     function downloadAsJPG() {
-      var slipElement = document.querySelector('.printable-slip');
+      var slipElement = document.getElementById('slipCardElement');
       var tokenNo = document.getElementById('slipTokenNo').innerText || 'Token';
 
       html2canvas(slipElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: null
       }).then(function(canvas) {
         var image = canvas.toDataURL("image/jpeg", 0.95);
         var link = document.createElement('a');
