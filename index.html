@@ -5,251 +5,167 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Appointment Token Slip Portal</title>
   
-  <!-- Fonts Setup -->
+  <!-- Premium Fonts: Poppins for Hindi & Outfit for English -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
+  <!-- आपकी पुरानी ओरिजिनल सुपर-फास्ट लाइब्रेरीज़ -->
   <script src="https://unpkg.com"></script>
+  <script src="https://tailwindcss.com"></script>
+  <script src="https://cloudflare.com"></script>
   <script src="https://jsdelivr.net"></script>
   
   <style>
-    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
-    
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body { 
       background: #f1f5f9; 
       color: #0f172a; 
       min-height: 100vh; 
       font-family: 'Poppins', 'Outfit', sans-serif; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 15px;
     }
+    .eng-font { font-family: 'Outfit', sans-serif; }
+    .premium-card { background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
+    .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; font-family: 'Outfit', sans-serif; }
+    .custom-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
     
-    .container {
-      width: 100%;
-      max-width: 450px;
-      margin: 0 auto;
-    }
-    
-    .header-section {
-      text-align: center;
-      margin-bottom: 20px;
-      padding-top: 10px;
-    }
-    
-    .header-section h1 {
-      font-size: 36px;
-      font-weight: 900;
-      color: #0f172a;
-      letter-spacing: -0.5px;
-      margin-bottom: 2px;
-    }
-    
-    .header-section p {
-      color: #475569;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    /* आपकी पुरानी खूबसूरत सफ़ेद कार्ड डिज़ाइन */
-    .premium-card { 
-      background: #ffffff; 
-      border: 1px solid #cbd5e1; 
-      border-radius: 24px;
-      padding: 24px; 
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
-    }
-    
-    .form-group {
-      margin-bottom: 16px;
-    }
-    
-    .form-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: #334155;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-    
-    .input-wrapper {
-      position: relative;
-    }
-    
-    .input-wrapper i {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      color: #94a3b8;
-    }
-    
-    .custom-input { 
-      width: 100%;
-      background: #f8fafc; 
-      border: 1.5px solid #cbd5e1; 
-      color: #0f172a; 
-      outline: none; 
-      font-family: 'Outfit', sans-serif;
-      padding: 12px 16px 12px 44px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .custom-input:focus { 
-      border-color: #0284c7; 
-      background: #ffffff; 
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
-    }
-    
-    .dates-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
-    /* दिनांक बॉक्स पुराना बॉर्डर लुक + नीचे प्रोग्रेस बार लाइन */
-    .date-box { 
-      border: 1.5px solid #cbd5e1; 
-      cursor: pointer; 
-      transition: all 0.2s ease; 
-      background: #ffffff; 
-      padding: 14px;
-      border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .date-box-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
+    /* आपकी ओरिजिनल तारीख बॉक्स डिज़ाइन */
+    .date-box { border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
     .date-box.available { background: #f0fdf4; border-color: #22c55e; }
     .date-box.selected { background: #0f172a !important; border-color: #0284c7 !important; color: #ffffff !important; }
-    
-    .date-title { font-size: 14px; font-weight: 800; color: #0f172a; }
-    .date-sub { font-size: 12px; font-weight: 700; color: #15803d; margin-top: 2px; }
-    .date-action { font-size: 12px; font-weight: 700; color: #0f172a; background: #e2e8f0; padding: 4px 10px; border-radius: 8px; }
-    
-    .date-box.selected .date-title, 
-    .date-box.selected .date-sub,
-    .date-box.selected .date-action { color: #ffffff !important; }
-    .date-box.selected .date-action { background: rgba(255, 255, 255, 0.2); }
-    
-    .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
-    .date-box.full .date-sub { color: #b91c1c; }
-    .date-box.full .date-action { color: #b91c1c; background: #fee2e2; }
-    
-    /* प्रोग्रेस बार कंटेनर */
-    .progress-container { width: 100%; mt: 2px; }
-    .progress-bg { w-full; background: #e2e8f0; height: 6px; border-radius: 999px; overflow: hidden; }
-    .progress-bar { height: 6px; border-radius: 999px; transition: all 0.3s ease; }
-    .date-box.available .progress-bar { background: #22c55e; }
-    .date-box.full .progress-bar { background: #ef4444; }
+    .date-box.selected .date-title, .date-box.selected .date-sub { color: #ffffff !important; }
     .date-box.selected .progress-bg { background: rgba(255, 255, 255, 0.2); }
     .date-box.selected .progress-bar { background: #ffffff; }
-
-    .btn-dark { 
-      background: #0f172a; 
-      color: #ffffff; 
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
-    }
+    .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
     
-    .hidden { display: none !important; }
-    .eng-font { font-family: 'Outfit', sans-serif; }
-    
-    /* स्लिप डिज़ाइन */
-    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; border-radius: 24px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-    .slip-title { text-align: center; font-size: 20px; font-weight: 900; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; }
-    .kotedar-card { background: #f1f5f9; border-radius: 16px; padding: 14px; flex-direction: row; display: flex; align-items: center; gap: 14px; border: 1px solid #cbd5e1; margin-bottom: 16px; }
-    .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 16px; border: 2px solid #94a3b8; flex-shrink: 0; }
-    .kotedar-photo { width: 100%; height: 100%; object-fit: cover; }
-    .kotedar-name { color: #dc2626; font-weight: 900; font-size: 15px; letter-spacing: 0.5px; text-transform: uppercase; }
-    .kotedar-loc { color: #000000; font-weight: 800; font-size: 12px; letter-spacing: 1px; margin-top: 4px; }
-    
-    .dashed-box { border: 2px dashed #0f172a; border-radius: 16px; padding: 16px; text-align: center; margin: 12px 0; background: #fafafa; }
-    .dashed-box p { font-size: 11px; font-weight: 900; letter-spacing: 1px; color: #475569; margin-bottom: 4px; }
-    .token-num-big { font-size: 36px; font-weight: 900; color: #000000; font-family: 'Outfit', sans-serif; }
-    .ration-last-digits { font-size: 14px; font-weight: 700; color: #334155; margin-top: 6px; font-family: 'Outfit', sans-serif; letter-spacing: 1px; }
-    
-    .time-slot-box { text-align: center; background: #fffbeb; padding: 12px; border-radius: 12px; border: 1px solid #fef3c7; margin-bottom: 16px; }
-    .time-slot-box span:first-child { color: #334155; font-size: 11px; font-weight: 700; display: block; }
-    .time-slot-box span:last-child { color: #0f172a; font-size: 16px; font-weight: 900; display: block; margin-top: 2px; }
-    
-    .details-table { border-top: 1px solid #e2e8f0; padding-top: 10px; margin-bottom: 12px; }
-    .details-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #334155; }
-    .details-row span:last-child { font-weight: 700; color: #000000; }
-    .slip-note { border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 11px; color: #475569; text-align: center; font-style: italic; }
+    .btn-dark { background: #0f172a; color: #ffffff; }
+    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
+    .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
+    .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
 </head>
-<body>
+<body class="p-3 sm:p-6 flex flex-col items-center justify-center">
 
-  <div class="container">
+  <div class="w-full max-w-md mx-auto">
     
-    <!-- सुधारे गए हेडर: सिंबल हटाकर टेक्स्ट बड़ा किया गया -->
-    <div class="header-section">
-      <h1>टोकन पास पोर्टल</h1>
-      <p>राशन वितरण ऑनलाइन बुकिंग</p>
+    <!-- आपकी डिमांड के अनुसार: सिंबल गायब और पोर्टल का नाम काफी बड़ा -->
+    <div class="text-center mb-5 pt-4">
+      <h1 class="text-4xl font-black tracking-tight text-slate-900 mb-1">टोकन पास पोर्टल</h1>
+      <p class="text-slate-600 text-xs font-bold mt-0.5">राशन वितरण ऑनलाइन बुकिंग</p>
     </div>
 
     <!-- Booking Form Screen -->
-    <div id="bookingScreen" class="premium-card">
-      <div class="form-group">
-        <label class="form-label">बुकिंग तिथि चुनें (लाइव डेटा)</label>
-        <div id="datesContainer" class="dates-list">
-          <div style="text-align: center; font-size: 12px; color: #64748b; padding: 12px;">तारीखें लोड हो रही हैं...</div>
+    <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-7 space-y-5">
+      <div>
+        <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">बुकिंग तिथि चुनें (लाइव डेटा)</label>
+        <div id="datesContainer" class="grid grid-cols-1 gap-2.5">
+          <div class="text-center text-xs text-slate-500 py-3">तारीखें लोड हो रही हैं...</div>
         </div>
       </div>
 
-      <form id="tokenForm" onsubmit="handleBooking(event)">
-        <div class="form-group">
-          <label class="form-label">पूरा नाम (Full Name)</label>
-          <div class="input-wrapper">
-            <i data-lucide="user"></i>
-            <input type="text" id="userName" required placeholder="अपना नाम दर्ज करें" class="custom-input uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
+      <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">पूरा नाम (Full Name)</label>
+          <div class="relative">
+            <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="text" id="userName" required placeholder="अपना नाम दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">मोबाइल नंबर (10 अंक)</label>
-          <div class="input-wrapper">
-            <i data-lucide="phone"></i>
-            <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">मोबाइल नंबर (10 अंक)</label>
+          <div class="relative">
+            <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">पूरा राशन कार्ड नंबर (12 अंक)</label>
-          <div class="input-wrapper">
-            <i data-lucide="credit-card"></i>
-            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">पूरा राशन कार्ड नंबर (12 अंक)</label>
+          <div class="relative">
+            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);">
           </div>
         </div>
 
-        <button type="submit" id="submitBtn" class="btn-dark">
-          <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
-  
+        <button type="submit" id="submitBtn" class="btn-dark w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>टोकन बुक करें</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Printable Slip Screen -->
+    <div id="ticketScreen" class="hidden">
+      <div class="printable-slip rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+        <h2 class="text-center text-xl font-black tracking-tight text-slate-900 mb-3 border-b-2 pb-2 border-slate-200">
+          Appointment Token Slip
+        </h2>
+
+        <div class="bg-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5 mb-4 border border-slate-300">
+          <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0">
+            <img id="kotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
+          </div>
+          <div>
+            <div class="text-red-600 font-black text-sm sm:text-base tracking-wide uppercase leading-tight">KOTEDAR - KAPIL DEV YADAV</div>
+            <div class="text-black font-extrabold text-xs tracking-widest mt-1">GUJARPAR</div>
+          </div>
+        </div>
+
+        <!-- डैश बॉक्स: सिर्फ टोकन नंबर और नीचे सिर्फ राशन कार्ड के अंतिम 4 अंक -->
+        <div class="border-2 border-dashed border-slate-900 rounded-2xl p-4 text-center my-3 bg-slate-50">
+          <p class="text-[11px] font-black tracking-widest uppercase text-slate-700 mb-1 eng-font">TOKEN NUMBER</p>
+          <div class="text-3xl sm:text-4xl font-black tracking-wider text-black mb-0.5 eng-font" id="slipTokenNo">-</div>
+          <div class="text-sm font-bold text-slate-700 mt-1.5 tracking-wider eng-font" id="slipRationLastDigits">----</div>
+        </div>
+
+        <div class="text-xs space-y-2.5 mt-4 text-slate-900 font-semibold px-1">
+          <div class="text-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+            <span class="text-slate-700 font-bold block text-[11px]">अनुमानित समय (Expected Time):</span>
+            <span class="text-slate-950 font-black text-base sm:text-lg block mt-0.5" id="slipTimeSlot">06:30 AM से 08:00 AM तक</span>
+          </div>
+
+          <div class="pt-2 space-y-2 border-t border-slate-200 text-slate-900">
+            <p class="flex justify-between"><strong>Appointment Date:</strong> <span id="slipDate" class="font-bold text-black eng-font">-</span></p>
+            <p class="flex justify-between"><strong>Ration Card No:</strong> <span id="slipRationNo" class="font-bold text-black eng-font">-</span></p>
+            <p class="flex justify-between"><strong>Name:</strong> <span id="slipName" class="font-bold text-black uppercase">-</span></p>
+            <p class="flex justify-between"><strong>Mobile:</strong> <span id="slipPhone" class="font-bold text-black eng-font">-</span></p>
+            <p class="flex justify-between text-xs text-slate-500"><strong>Generated On:</strong> <span id="slipGeneratedOn" class="eng-font">-</span></p>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-600 italic leading-tight text-center">
+            <strong>नोट:</strong> कृपया अपने दिए गए समय पर उपस्थित होने का कष्ट करें।
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button onclick="downloadAsJPG()" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 text-sm font-bold text-white flex items-center justify-center gap-2 shadow-md transition">
+          <i data-lucide="image-down" class="w-5 h-5"></i> <span>JPG डाउनलोड करें</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const SUPABASE_URL = "https://supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var RAW_PHOTO_URL = "https://phototourl.com";
+    var selectedDate = '';
+    var isBookingInProgress = false;
+
+    window.addEventListener('beforeunload', function (e) {
+      if (isBookingInProgress) {
+        e.preventDefault();
+        e.returnValue = 'टोकन बुकिंग प्रक्रिया में है, क्या आप बाहर जाना चाहते हैं?';
+      }
+    });
+
+    window.onload = function() {
+      var imgElem = document.getElementById('kotedarImg');
+    
