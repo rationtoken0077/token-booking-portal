@@ -81,12 +81,12 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- 1. Ration Card Number Input (Sabse Upar) -->
+        <!-- 1. Ration Card Number Input (Placeholder updated to 21XXXXXX) -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
           <div class="relative">
             <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: 219120522054" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
+            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="21XXXXXX (12 Digit)" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
           </div>
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
@@ -297,7 +297,6 @@
       loadSlotsData();
     };
 
-    // Hindi to English Phonics Mapping for Token Initials (e.g. सुखदेव यादव -> S Y)
     function getDevanagariFirstLetterEnglish(word) {
       if (!word) return 'T';
       var char = word.charAt(0);
@@ -314,10 +313,7 @@
       };
 
       if (map[char]) return map[char];
-      
-      // Agar pehle se English letter hai to uppercase return kare
       if (/[a-zA-Z]/.test(char)) return char.toUpperCase();
-      
       return 'T';
     }
 
