@@ -91,7 +91,7 @@
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
-        <!-- 2. Full Name Input (Jab Tak Ration Card na daale tab tak disabled) -->
+        <!-- 2. Full Name Input (Disabled jab tak 12 digit ration card na pade) -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
           <div class="relative">
@@ -183,7 +183,7 @@
 
     // 257 Antyodaya (Red Card) Database Integrated
     const redRationCards = {
-      "219120522054": "रामकरण यादव", // Aapka specific red card number bhi add kar diya gaya hai
+      "219120522054": "रामकरण यादव",
       "21XXXXXX0177": "राधिका", "21XXXXXX0694": "रुना देवी", "21XXXXXX8940": "लालती", "21XXXXXX9894": "फूलबासी",
       "21XXXXXX5294": "सविता देवी", "21XXXXXX2846": "फूलमती", "21XXXXXX2046": "चम्पा", "21XXXXXX2047": "फेकनी",
       "21XXXXXX2840": "निर्मला", "21XXXXXX3127": "राजमती", "21XXXXXX5297": "परंजोती देवी", "21XXXXXX9857": "पतिक",
@@ -260,7 +260,6 @@
       isCurrentCardRed = false;
 
       if (cardNo.length === 12) {
-        // Unlock Name Box
         nameInput.disabled = false;
         nameInput.placeholder = "अपना नाम दर्ज करें";
 
@@ -278,7 +277,6 @@
           if (!nameInput.value) nameInput.focus();
         }
       } else {
-        // Lock Name Box if Ration Card is less than 12 digits
         nameInput.value = "";
         nameInput.disabled = true;
         nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
@@ -299,15 +297,41 @@
       loadSlotsData();
     };
 
+    // Hindi to English Phonics Mapping for Token Initials (e.g. सुखदेव यादव -> S Y)
+    function getDevanagariFirstLetterEnglish(word) {
+      if (!word) return 'T';
+      var char = word.charAt(0);
+      
+      var map = {
+        'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ऋ': 'R', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'A',
+        'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'ङ': 'N',
+        'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J', 'ञ': 'N',
+        'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'ण': 'N',
+        'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N',
+        'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M',
+        'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H',
+        'क्ष': 'K', 'त्र': 'T', 'ज्ञ': 'G', 'ॐ': 'O'
+      };
+
+      if (map[char]) return map[char];
+      
+      // Agar pehle se English letter hai to uppercase return kare
+      if (/[a-zA-Z]/.test(char)) return char.toUpperCase();
+      
+      return 'T';
+    }
+
     function getNameInitials(fullName) {
       if (!fullName) return 'TK';
       var parts = fullName.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      } else if (parts.length === 1 && parts[0].length > 0) {
-        return parts[0][0].toUpperCase();
-      }
-      return 'TK';
+      
+      var firstPart = parts[0];
+      var secondPart = parts.length > 1 ? parts[parts.length - 1] : '';
+
+      var firstInitial = getDevanagariFirstLetterEnglish(firstPart);
+      var secondInitial = secondPart ? getDevanagariFirstLetterEnglish(secondPart) : '';
+
+      return (firstInitial + secondInitial).toUpperCase();
     }
 
     async function loadSlotsData() {
