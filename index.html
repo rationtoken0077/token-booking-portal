@@ -1,111 +1,187 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <title>Ration Card Booking Test</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .booking-card { max-width: 450px; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        button:hover { background: #218838; }
-        .success-msg { color: green; font-weight: bold; margin-top: 15px; display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ration Token Booking Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+  </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-<div class="booking-card">
-    <h2>Ration Booking (Testing Mode)</h2>
-    <form id="bookingForm">
-        <div class="form-group">
-            <label>Ration Card Number:</label>
-            <input type="text" id="rationCardInput" placeholder="Enter Ration Card No." required onkeyup="checkRationCard()">
-        </div>
+  <div class="bg-white max-w-md w-full rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    
+    <!-- Header -->
+    <div class="bg-slate-900 text-white p-6 text-center">
+      <h1 class="text-xl font-bold">Ration Token Booking Portal</h1>
+      <p class="text-xs text-slate-400 mt-1">Kapil Dev Yadav - Gujarpar Digital Services</p>
+    </div>
 
-        <div class="form-group">
-            <label>Card Holder Name (Auto-Fetch):</label>
-            <input type="text" id="holderNameInput" placeholder="Match hone par naam aayega" readonly style="background-color: #e9ecef;">
-        </div>
+    <!-- Booking Form -->
+    <form onsubmit="handleBookingSubmit(event)" class="p-6 space-y-4">
+      
+      <!-- Date Slot Selection Dropdown -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Select Booking Date / तारीख चुनें:</label>
+        <select id="userDateSelect" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Loading active dates...</option>
+        </select>
+      </div>
 
-        <div class="form-group">
-            <label>User Name (Booking karne wale ka naam):</label>
-            <input type="text" id="userNameInput" placeholder="Apna Naam Likhein" required>
-        </div>
+      <!-- Ration Card Number -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Ration Card Number / राशन कार्ड संख्या:</label>
+        <input type="text" id="userCardNo" oninput="autoFetchCardDetails()" placeholder="Koi bhi Ration Card No. dalein" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
 
-        <button type="submit">Book Ration Slot</button>
+      <!-- Auto-Fetched Details (If Available) -->
+      <div id="cardDetailsBox" class="bg-blue-50 border border-blue-200 p-3 rounded-lg text-xs space-y-1 hidden">
+        <p class="text-blue-800 font-bold" id="fetchHolderName">Card Holder: -</p>
+        <p class="text-slate-600" id="fetchFatherName">Father/Husband: -</p>
+        <p class="text-slate-600" id="fetchMotherName">Mother: -</p>
+        <p class="text-emerald-700 font-bold" id="fetchUnits">Total Units: -</p>
+      </div>
+
+      <!-- Card Holder / User Name -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Card Holder / User Name (नाम):</label>
+        <input type="text" id="userName" placeholder="Mukhya ya booking karne wale ka naam" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number / मोबाइल नंबर:</label>
+        <input type="tel" id="userPhone" placeholder="Enter Mobile No." required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+        <i data-lucide="ticket" class="w-4 h-4"></i> Book Ration Token
+      </button>
+
+      <!-- Status Alert -->
+      <div id="statusMessage" class="hidden text-center text-xs font-bold p-2.5 rounded-lg"></div>
+
     </form>
+  </div>
 
-    <div id="msg" class="success-msg">Booking Successful! (Test Mode)</div>
-</div>
+  <script>
+    const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-<script>
-    // Demo Database (Jo HTML data aapne nikala tha usko yahan rakha hai)
+    // FCS / Local Database Records for Auto-Match
     const rationDatabase = {
-        "21XXXXXX6726": {
-            holderName: "राम देवी",
-            fatherHusbandName: "लालमन मौर्य",
-            motherName: "रामवती देवी",
-            units: 4,
-            regDate: "01/06/2019"
-        },
-        "21XXXXXX1234": {
-            holderName: "शीला देवी",
-            fatherHusbandName: "राम कुमार",
-            motherName: "सुमित्रा देवी",
-            units: 3,
-            regDate: "15/08/2020"
-        }
+        "212010186726": { holderName: "राम देवी", fatherHusbandName: "लालमन मौर्य", motherName: "रामवती देवी", units: 4 },
+        "212010186727": { holderName: "शीला", fatherHusbandName: "राम कुमार", motherName: "सुमित्रा देवी", units: 3 },
+        "212010186728": { holderName: "मुन्नी देवी", fatherHusbandName: "राकेश चंद्र", motherName: "शांति देवी", units: 6 },
+        "212010186729": { holderName: "सुनीता देवी", fatherHusbandName: "सुरेश कुमार", motherName: "पार्वती देवी", units: 5 },
+        "212010186730": { holderName: "अनिता देवी", fatherHusbandName: "दिनेश वर्मा", motherName: "कमला देवी", units: 2 }
     };
 
-    // Ration Card check karne ka function
-    function checkRationCard() {
-        let cardNo = document.getElementById("rationCardInput").value.trim();
-        let holderField = document.getElementById("holderNameInput");
+    var fetchedInfo = null;
 
-        // Agar database me match mila toh Asli Naam aayega
-        if (rationDatabase[cardNo]) {
-            holderField.value = rationDatabase[cardNo].holderName;
-        } else {
-            // Galat ya unmatched number hone par bhi testing ke liye blank/demo naam rahega
-            holderField.value = "Guest/Unverified Holder";
-        }
+    window.onload = function() {
+      lucide.createIcons();
+      loadActiveSlots();
+    };
+
+    // Active Slots Fetch Karein
+    async function loadActiveSlots() {
+      const select = document.getElementById('userDateSelect');
+      const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        select.innerHTML = '<option value="">No Active Date Slots Available</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">-- Choose Date Slot --</option>';
+      data.forEach(function(slot) {
+        var opt = document.createElement('option');
+        opt.value = slot.date;
+        opt.innerText = (slot.label || slot.date) + ' (' + (slot.booked_count || 0) + '/' + (slot.limit_count || 200) + ' Booked)';
+        select.appendChild(opt);
+      });
     }
 
-    // Form submit event
-    document.getElementById("bookingForm").addEventListener("submit", function(e) {
-        e.preventDefault();
+    // Auto-Fetch Card Details
+    function autoFetchCardDetails() {
+      var cardNo = document.getElementById('userCardNo').value.trim();
+      var detailsBox = document.getElementById('cardDetailsBox');
 
-        let cardNo = document.getElementById("rationCardInput").value.trim();
-        let userName = document.getElementById("userNameInput").value.trim();
-        let holderName = document.getElementById("holderNameInput").value;
+      if (rationDatabase[cardNo]) {
+        fetchedInfo = rationDatabase[cardNo];
+        document.getElementById('fetchHolderName').innerText = "Card Holder: " + fetchedInfo.holderName;
+        document.getElementById('fetchFatherName').innerText = "Father/Husband: " + fetchedInfo.fatherHusbandName;
+        document.getElementById('fetchMotherName').innerText = "Mother: " + fetchedInfo.motherName;
+        document.getElementById('fetchUnits').innerText = "Total Units: " + fetchedInfo.units;
+        
+        // Auto fill name input
+        document.getElementById('userName').value = fetchedInfo.holderName;
+        detailsBox.classList.remove('hidden');
+      } else {
+        fetchedInfo = null;
+        detailsBox.classList.add('hidden');
+      }
+    }
 
-        // Data ko localStorage me save kar rahe hain taaki Admin dekh sake
-        let details = rationDatabase[cardNo] || {
-            fatherHusbandName: "N/A (Testing)",
-            motherName: "N/A (Testing)",
-            units: "N/A"
-        };
+    // Submit Booking to Supabase
+    async function handleBookingSubmit(e) {
+      e.preventDefault();
 
-        let newBooking = {
-            cardNo: cardNo,
-            userName: userName,
-            holderName: holderName,
-            fatherName: details.fatherHusbandName,
-            motherName: details.motherName,
-            units: details.units,
-            time: new Date().toLocaleTimeString()
-        };
+      var tokenDate = document.getElementById('userDateSelect').value;
+      var cardNo = document.getElementById('userCardNo').value.trim();
+      var userName = document.getElementById('userName').value.trim();
+      var userPhone = document.getElementById('userPhone').value.trim();
+      var btn = document.getElementById('submitBtn');
+      var msg = document.getElementById('statusMessage');
 
-        let existingBookings = JSON.parse(localStorage.getItem("adminBookings")) || [];
-        existingBookings.push(newBooking);
-        localStorage.setItem("adminBookings", JSON.stringify(existingBookings));
+      if (!tokenDate) {
+        alert("Kripya pehle Date select karein!");
+        return;
+      }
 
-        document.getElementById("msg").style.display = "block";
-        document.getElementById("bookingForm").reset();
-    });
-</script>
+      btn.disabled = true;
+      btn.innerText = "Booking Token...";
 
+      var payload = {
+        token_date: tokenDate,
+        card: cardNo,
+        name: userName,
+        phone: userPhone,
+        holder_name: fetchedInfo ? fetchedInfo.holderName : userName,
+        father_husband_name: fetchedInfo ? fetchedInfo.fatherHusbandName : "N/A",
+        mother_name: fetchedInfo ? fetchedInfo.motherName : "N/A",
+        units: fetchedInfo ? fetchedInfo.units : 1,
+        status: "PENDING"
+      };
+
+      const { data, error } = await supabaseClient.from('bookings').insert([payload]);
+
+      if (error) {
+        msg.className = "text-center text-xs font-bold p-2.5 rounded-lg bg-red-100 text-red-800 block";
+        msg.innerText = "Error: " + error.message;
+      } else {
+        msg.className = "text-center text-xs font-bold p-2.5 rounded-lg bg-emerald-100 text-emerald-800 block";
+        msg.innerText = "Token Successfully Book Ho Gaya!";
+        
+        // Form Reset
+        document.getElementById('userCardNo').value = '';
+        document.getElementById('userName').value = '';
+        document.getElementById('userPhone').value = '';
+        document.getElementById('cardDetailsBox').classList.add('hidden');
+        loadActiveSlots();
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="ticket" class="w-4 h-4"></i> Book Ration Token';
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>
