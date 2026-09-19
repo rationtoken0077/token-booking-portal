@@ -27,6 +27,7 @@
     .premium-card { background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
     .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; }
     .custom-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+    .custom-input:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; }
     .date-box { border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
     .date-box.available { background: #f0fdf4; border-color: #22c55e; }
     .date-box.selected { background: #0f172a !important; border-color: #0284c7 !important; color: #ffffff !important; }
@@ -80,32 +81,32 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- Full Name Input -->
+        <!-- 1. Ration Card Number Input (Sabse Upar) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
+          <div class="relative">
+            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: 219120522054" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
+          </div>
+          <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
+        </div>
+
+        <!-- 2. Full Name Input (Jab Tak Ration Card na daale tab tak disabled) -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
           <div class="relative">
             <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="userName" required placeholder="अपना नाम दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
+            <input type="text" id="userName" required disabled placeholder="पहले राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
           </div>
         </div>
 
-        <!-- Mobile Number Input -->
+        <!-- 3. Mobile Number Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
           <div class="relative">
             <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
             <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
           </div>
-        </div>
-
-        <!-- Ration Card Number Input (Auto-Fetch Enabled) -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
-          <div class="relative">
-            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
-          </div>
-          <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
         <button type="submit" id="submitBtn" class="btn-dark w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
@@ -182,6 +183,7 @@
 
     // 257 Antyodaya (Red Card) Database Integrated
     const redRationCards = {
+      "219120522054": "रामकरण यादव", // Aapka specific red card number bhi add kar diya gaya hai
       "21XXXXXX0177": "राधिका", "21XXXXXX0694": "रुना देवी", "21XXXXXX8940": "लालती", "21XXXXXX9894": "फूलबासी",
       "21XXXXXX5294": "सविता देवी", "21XXXXXX2846": "फूलमती", "21XXXXXX2046": "चम्पा", "21XXXXXX2047": "फेकनी",
       "21XXXXXX2840": "निर्मला", "21XXXXXX3127": "राजमती", "21XXXXXX5297": "परंजोती देवी", "21XXXXXX9857": "पतिक",
@@ -248,7 +250,7 @@
       "21XXXXXX9859": "निरंजनी", "21XXXXXX9849": "गंगा", "21XXXXXX2054": "रामकरण यादव", "21XXXXXX6736": "हिरामुनी"
     };
 
-    // Automatic Name & Red Card Detection Function
+    // Auto Fetch Function and Input Lock Management
     function autoFetchCardName(input) {
       input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
       var cardNo = input.value.trim();
@@ -258,7 +260,10 @@
       isCurrentCardRed = false;
 
       if (cardNo.length === 12) {
-        // First check in Red Card Database
+        // Unlock Name Box
+        nameInput.disabled = false;
+        nameInput.placeholder = "अपना नाम दर्ज करें";
+
         var maskedCardKey = cardNo.slice(0, 2) + "XXXXXX" + cardNo.slice(8);
         
         if (redRationCards[cardNo] || redRationCards[maskedCardKey]) {
@@ -268,10 +273,15 @@
           statusBox.innerText = "✓ अंत्योदय (Red Card) - नाम: " + matchedName;
           statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
         } else {
-          statusBox.innerText = "• सामान्य कार्ड दर्ज किया गया";
+          statusBox.innerText = "• सामान्य कार्ड दर्ज किया गया (कृपया नाम दर्ज करें)";
           statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
+          if (!nameInput.value) nameInput.focus();
         }
       } else {
+        // Lock Name Box if Ration Card is less than 12 digits
+        nameInput.value = "";
+        nameInput.disabled = true;
+        nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
         statusBox.className = "hidden";
       }
     }
@@ -378,6 +388,11 @@
       var phone = document.getElementById('userPhone').value.trim();
       var ration = document.getElementById('userRation').value.trim();
 
+      if (!name) {
+        alert('कृपया नाम दर्ज करें!');
+        return;
+      }
+
       var btn = document.getElementById('submitBtn');
       btn.disabled = true;
       btn.innerHTML = '<span class="hindi-text">टोकन जनरेट हो रहा है...</span>';
@@ -444,7 +459,6 @@
 
       var slipCard = document.getElementById('slipCardElement');
       
-      // Dynamic Red Card Background Theme Application
       if (isCurrentCardRed) {
         slipCard.classList.add('red-card-theme');
       } else {
