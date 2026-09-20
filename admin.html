@@ -22,154 +22,183 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900 pb-12">
 
-  <!-- Header -->
-  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="p-2 bg-blue-600 rounded-xl text-white">
-          <i data-lucide="shield-check" class="w-5 h-5"></i>
+  <!-- Password Protection Overlay -->
+  <div id="authOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold">
+          <i data-lucide="lock" class="w-6 h-6"></i>
         </div>
-        <div>
-          <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none">FPS Token Management System</h1>
-          <p class="text-xs text-slate-400 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
-        </div>
+        <h2 class="font-black text-lg text-slate-900">Admin Authentication</h2>
+        <p class="text-xs text-slate-500">कृपया एडमिन पासवर्ड दर्ज करें</p>
       </div>
-      <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition">
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-      </button>
+      <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
+        <input type="password" id="adminPasswordInput" placeholder="पासवर्ड दर्ज करें..." required class="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-sm transition shadow-md">
+          लॉगिन करें
+        </button>
+      </form>
     </div>
-  </header>
+  </div>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <!-- Main Content (Hidden until authenticated) -->
+  <div id="adminMainContent" class="hidden">
+    <!-- Header -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-600 rounded-xl text-white">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none">FPS Token Management System</h1>
+            <p class="text-xs text-slate-400 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+          <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-3 py-2 rounded-lg text-xs transition">
+            लॉग आउट
+          </button>
+        </div>
+      </div>
+    </header>
 
-    <!-- Add New Slot & Manual Admin Booking Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Add Slot Form -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-          <i data-lucide="calendar-plus" class="text-blue-600 w-5 h-5"></i>
-          <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+      <!-- Add New Slot & Manual Admin Booking Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Add Slot Form -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <i data-lucide="calendar-plus" class="text-blue-600 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
+          </div>
+
+          <form onsubmit="addNewSlot(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
+              <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
+              <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
+              <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <button type="submit" id="addSlotBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+              <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
+            </button>
+          </form>
         </div>
 
-        <form onsubmit="addNewSlot(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
-            <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+        <!-- Admin Direct Booking Form -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <i data-lucide="user-plus" class="text-emerald-600 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking</h2>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
-            <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
-            <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
-          <button type="submit" id="addSlotBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
-            <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
-          </button>
-        </form>
+
+          <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
+              <select id="adminBookingDate" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">-- Select Date --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit / XXXXXX)</label>
+              <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
+              <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
+              <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="sm:col-span-2 flex gap-2">
+              <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
+                Book Token Now
+              </button>
+            </div>
+          </form>
+        </div>
+
       </div>
 
-      <!-- Admin Direct Booking & Full Control Form -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
-        <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-          <i data-lucide="user-plus" class="text-emerald-600 w-5 h-5"></i>
-          <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking / Card Update</h2>
+      <!-- Active Slots & Seat Controls -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+          </div>
+          <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
         </div>
 
-        <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
+          <p class="text-xs text-slate-400">Loading active slots...</p>
+        </div>
+      </div>
+
+      <!-- Booking Table with Date Filter -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Filter Bar -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
-            <select id="adminBookingDate" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-              <option value="">-- Select Date --</option>
+            <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+              <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register & Data Update
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">List se direct card number aur naam update karein jo seedha Supabase mein save hoga</p>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label class="text-xs font-bold text-slate-600">Filter Date:</label>
+            <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="ALL">All Dates</option>
             </select>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
-            <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
-            <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
-            <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div class="sm:col-span-2 flex gap-2">
-            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
-              Book Token / Save Data
-            </button>
-          </div>
-        </form>
-      </div>
-
-    </div>
-
-    <!-- Active Slots & Seat Controls -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
-          <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
-        </div>
-        <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
-      </div>
-
-      <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
-        <p class="text-xs text-slate-400">Loading active slots...</p>
-      </div>
-    </div>
-
-    <!-- Booking Table with Date Filter -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      
-      <!-- Filter Bar -->
-      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-            <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register
-          </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Filter by date and view local shop records</p>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <label class="text-xs font-bold text-slate-600">Filter Date:</label>
-          <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="ALL">All Dates</option>
-          </select>
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5">Token ID</th>
+                <th class="p-3.5">Date</th>
+                <th class="p-3.5">Card Holder Name</th>
+                <th class="p-3.5">Booked By</th>
+                <th class="p-3.5">Phone</th>
+                <th class="p-3.5">Card No. / Update</th>
+                <th class="p-3.5 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
+              <tr>
+                <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-              <th class="p-3.5">Status</th>
-              <th class="p-3.5">Token ID</th>
-              <th class="p-3.5">Date</th>
-              <th class="p-3.5">Card Holder Name</th>
-              <th class="p-3.5">Booked By</th>
-              <th class="p-3.5">Phone</th>
-              <th class="p-3.5">Card No.</th>
-              <th class="p-3.5">Details</th>
-              <th class="p-3.5 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
-            <tr>
-              <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </main>
+    </main>
+  </div>
 
   <script>
+    // यहाँ अपना गुप्त पासवर्ड सेट कर लें (जैसे: kapil123 या kotedar2026)
+    const ADMIN_SECRET_PASSWORD = "kapil2026"; 
+
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -179,9 +208,35 @@
     var supabaseCardsCache = {};
 
     window.onload = function() {
+      // Check if already logged in during session
+      if (sessionStorage.getItem("adminAuth") === "true") {
+        unlockAdminPanel();
+      }
       lucide.createIcons();
-      loadAllData();
     };
+
+    function verifyAdminPassword(e) {
+      e.preventDefault();
+      var pass = document.getElementById('adminPasswordInput').value;
+      if (pass === ADMIN_SECRET_PASSWORD) {
+        sessionStorage.setItem("adminAuth", "true");
+        unlockAdminPanel();
+      } else {
+        alert('गलत पासवर्ड! कृपया सही पासवर्ड दर्ज करें।');
+        document.getElementById('adminPasswordInput').value = '';
+      }
+    }
+
+    function unlockAdminPanel() {
+      document.getElementById('authOverlay').style.display = 'none';
+      document.getElementById('adminMainContent').classList.remove('hidden');
+      loadAllData();
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem("adminAuth");
+      location.reload();
+    }
 
     async function loadAllData() {
       await fetchSupabaseCards();
@@ -196,10 +251,7 @@
           data.forEach(function(card) {
             var cNum = String(card.card_number || '').trim();
             supabaseCardsCache[cNum] = {
-              holderName: card.holder_name || 'N/A',
-              fatherHusbandName: card.father_husband_name || 'N/A',
-              motherName: card.mother_name || 'N/A',
-              units: card.units || 'N/A'
+              holderName: card.holder_name || 'N/A'
             };
           });
         }
@@ -268,9 +320,8 @@
     async function loadBookings() {
       const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
       
-      if (error || !data || data.length === 0) {
-        let localData = JSON.parse(localStorage.getItem("adminBookings")) || [];
-        allBookingsData = localData;
+      if (error || !data) {
+        allBookingsData = [];
       } else {
         allBookingsData = data;
       }
@@ -288,7 +339,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
         return;
       }
 
@@ -299,27 +350,7 @@
         var fullToken = initials + '-' + formattedNum;
 
         var cardNo = String(b.card || b.cardNo || b.ration_card_number || b.card_number || '').trim();
-        
-        // Smart Matching for N/A fix (Exact match or Last 4 digits match fallback)
-        var cardInfo = supabaseCardsCache[cardNo];
-        if (!cardInfo) {
-          var last4 = cardNo.slice(-4);
-          for (var key in supabaseCardsCache) {
-            if (key.endsWith(last4)) {
-              cardInfo = supabaseCardsCache[key];
-              break;
-            }
-          }
-        }
-
-        if (!cardInfo) {
-          cardInfo = {
-            holderName: b.holderName || b.holder_name || b.name || "N/A",
-            fatherHusbandName: b.fatherName || b.father_husband_name || "N/A",
-            motherName: b.motherName || b.mother_name || "N/A",
-            units: b.units || "N/A"
-          };
-        }
+        var cardInfo = supabaseCardsCache[cardNo] || { holderName: b.name || 'N/A' };
 
         var tr = document.createElement('tr');
         tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
@@ -335,17 +366,11 @@
           '<td class="p-3.5 font-bold text-blue-700">' + cardInfo.holderName + '</td>' +
           '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
           '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
-          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
           '<td class="p-3.5">' +
-            '<details class="cursor-pointer">' +
-              '<summary class="text-blue-600 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> Details</summary>' +
-              '<div class="mt-2 p-2 bg-slate-100 border border-slate-200 rounded-lg text-[11px] space-y-1 font-sans">' +
-                '<p><b>Card Holder Name:</b> ' + cardInfo.holderName + '</p>' +
-                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
-                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
-                '<p><b>Total Units:</b> <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
-              '</div>' +
-            '</details>' +
+            '<div class="flex items-center gap-1.5">' +
+              '<input type="text" id="card-in-' + b.id + '" value="' + cardNo + '" maxlength="12" class="w-28 p-1 border border-slate-300 rounded font-mono text-xs uppercase bg-white">' +
+              '<button onclick="quickUpdateCard(' + b.id + ')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded text-[11px] transition shadow-sm">Save</button>' +
+            '</div>' +
           '</td>' +
           '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
             (isDone
@@ -360,14 +385,41 @@
       lucide.createIcons();
     }
 
+    async function quickUpdateCard(bookingId) {
+      var newCardNo = document.getElementById('card-in-' + bookingId).value.trim().toUpperCase();
+
+      if (!newCardNo || newCardNo.length !== 12) {
+        alert('कृपया पूरा 12 अंकों का वैध राशन कार्ड नंबर दर्ज करें!');
+        return;
+      }
+
+      try {
+        // Update card in bookings table in Supabase
+        const { error: bookingErr } = await supabaseClient
+          .from('bookings')
+          .update({ card: newCardNo })
+          .eq('id', bookingId);
+
+        if (bookingErr) throw bookingErr;
+
+        // Upsert into cards master table so future lookups find it
+        await supabaseClient
+          .from('cards')
+          .upsert([{ card_number: newCardNo }], { onConflict: 'card_number' });
+
+        alert('कार्ड नंबर सफलतापूर्वक Supabase में अपडेट हो गया है!');
+        loadAllData();
+      } catch (err) {
+        alert('अपडेट करने में त्रुटि: ' + (err.message || err));
+      }
+    }
+
     async function toggleStatus(bookingId, newStatus) {
       try {
-        if(bookingId) {
-            await supabaseClient
-              .from('bookings')
-              .update({ status: newStatus })
-              .eq('id', bookingId);
-        }
+        await supabaseClient
+          .from('bookings')
+          .update({ status: newStatus })
+          .eq('id', bookingId);
 
         var targetIndex = allBookingsData.findIndex(function(x) { return x.id === bookingId; });
         if (targetIndex !== -1) {
@@ -394,8 +446,8 @@
     async function adminDirectBooking(e) {
       e.preventDefault();
       var date = document.getElementById('adminBookingDate').value;
-      var cardNo = document.getElementById('adminCardNo').value.trim();
-      var holderName = document.getElementById('adminHolderName').value.trim();
+      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
+      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
       var phone = document.getElementById('adminPhone').value.trim();
 
       if (!date || !cardNo || !holderName) {
@@ -433,7 +485,6 @@
           .update({ booked_count: tokenSeq })
           .eq('date', date);
 
-        // Also check if card exists in cards table, if not or to save middle digits, upsert it
         await supabaseClient.from('cards').upsert([
           { card_number: cardNo, holder_name: holderName }
         ], { onConflict: 'card_number' });
@@ -469,7 +520,7 @@
 
     async function addNewSlot(e) {
       e.preventDefault();
-      var date = document.getElementById('slotDate').value;
+      var date = document.getElementById('slotDate.value' || 'slotDate').value;
       var label = document.getElementById('slotLabel').value;
       var limit = parseInt(document.getElementById('slotLimit').value);
 
