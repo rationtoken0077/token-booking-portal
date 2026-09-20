@@ -248,13 +248,16 @@
         const { data, error } = await supabaseClient.from('cards').select('*');
         if (!error && data) {
           data.forEach(function(card) {
-            var cNum = String(card.card_number || '').trim();
-            supabaseCardsCache[cNum] = {
-              holderName: card.holder_name || 'N/A',
-              fatherHusbandName: card.father_husband_name || card.fatherName || 'N/A',
-              motherName: card.mother_name || card.motherName || 'N/A',
-              units: card.units || 'N/A'
-            };
+            var cNum = String(card.card_number || card.ration_card_number || card.cardNo || '').trim();
+            if (cNum) {
+              // यहाँ सभी संभावित कॉलम नामों को चेक किया गया है ताकि डेटा मिस न हो
+              supabaseCardsCache[cNum] = {
+                holderName: card.holder_name || card.card_holder_name || card.name || card.holderName || 'N/A',
+                fatherHusbandName: card.father_husband_name || card.father_name || card.fatherName || card.fathers_name || card.husband_name || 'N/A',
+                motherName: card.mother_name || card.motherName || card.mothers_name || 'N/A',
+                units: card.units || card.total_units || card.totalUnits || 'N/A'
+              };
+            }
           });
         }
       } catch (err) {
@@ -353,12 +356,15 @@
 
         var cardNo = String(b.card || b.cardNo || b.ration_card_number || b.card_number || '').trim();
         
-        // Lookup card details from cache
+        // --- SMART CARD MATCHING (आगे के 2 अंक और लास्ट के 4 अंक का लॉजिक) ---
         var cardInfo = supabaseCardsCache[cardNo];
-        if (!cardInfo) {
+        
+        if (!cardInfo && cardNo.length >= 6) {
+          var first2 = cardNo.substring(0, 2);
           var last4 = cardNo.slice(-4);
+          
           for (var key in supabaseCardsCache) {
-            if (key.endsWith(last4)) {
+            if (key.startsWith(first2) && key.endsWith(last4)) {
               cardInfo = supabaseCardsCache[key];
               break;
             }
@@ -552,7 +558,7 @@
 
     async function addNewSlot(e) {
       e.preventDefault();
-      var date = document.getElementById('slotDate').value;
+      var date = document.getElementById('slotDate.value') || document.getElementById('slotDate').value;
       var label = document.getElementById('slotLabel').value;
       var limit = parseInt(document.getElementById('slotLimit').value);
 
