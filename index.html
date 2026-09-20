@@ -81,12 +81,12 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- 1. Ration Card Number Input -->
+        <!-- 1. Ration Card Number Input (Updated to allow Any 6 characters in middle) -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
           <div class="relative">
             <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="21XXXXXX (12 Digit)" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
+            <input type="text" id="userRation" required minlength="12" maxlength="12" placeholder="21XXXXXX1234" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="autoFetchCardName(this)">
           </div>
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
@@ -181,25 +181,40 @@
     var isBookingInProgress = false;
     var isCurrentCardRed = false;
 
-    // Auto Fetch Function from Supabase Database ('cards' table)
+    // Updated Auto Fetch Function (Matches '21' + Any 6 Chars + Last 4)
     async function autoFetchCardName(input) {
-      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
-      var cardNo = input.value.trim();
+      // Allow User to type X or numbers in the middle
+      input.value = input.value.toUpperCase().replace(/[^0-9X]/g, '').slice(0, 12);
+      var cardNo = input.value;
       var nameInput = document.getElementById('userName');
       var statusBox = document.getElementById('cardStatusMsg');
       
       isCurrentCardRed = false;
 
       if (cardNo.length === 12) {
+        var first2 = cardNo.substring(0, 2);
+        var last4 = cardNo.substring(8, 12);
+
+        // Check if starting digits are 21
+        if (first2 !== '21') {
+          nameInput.value = "";
+          nameInput.disabled = true;
+          nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
+          statusBox.innerText = "• त्रुटि: कार्ड नंबर '21' से शुरू होना चाहिए!";
+          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
+          return;
+        }
+
         statusBox.innerText = "कार्ड खोजा जा रहा है...";
         statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-blue-600 block";
 
         try {
-          // Supabase से कार्ड नंबर सर्च करें
+          // Supabase से कार्ड सर्च करें - .like() का उपयोग करके (21% + Last 4 Digits)
           const { data, error } = await supabaseClient
             .from('cards')
             .select('*')
-            .eq('card_number', cardNo)
+            .like('card_number', '21%' + last4)
+            .limit(1)
             .maybeSingle();
 
           if (error) throw error;
@@ -209,10 +224,7 @@
             var matchedName = data.holder_name || '';
             nameInput.value = matchedName;
 
-            // अगर यूनिट्स या कार्ड टाइप से पहचानना हो (या रेड कार्ड डेटाबेस के आधार पर)
-            // यहाँ हम चेक कर सकते हैं कि यह रेड कार्ड है या नहीं (जैसे units या किसी अन्य पहचान से, या अगर आप चाहें तो लाल कार्ड की पहचान जोड़ सकते हैं)
-            // उदाहरण के लिए अगर units या data में red card flag हो:
-            isCurrentCardRed = (data.card_type === 'red' || data.is_red === true || Number(data.units) <= 3); // अपनी जरूरत अनुसार शर्त रख सकते हैं
+            isCurrentCardRed = (data.card_type === 'red' || data.is_red === true || Number(data.units) <= 3);
 
             statusBox.innerText = "✓ राशन कार्ड मिल गया - नाम: " + matchedName;
             statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
