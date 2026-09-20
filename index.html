@@ -1,115 +1,486 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Ration Token Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Appointment Token Slip Portal</title>
+  
+  <!-- Fonts: Poppins for Hindi & Outfit for English -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { 
+      background: #f1f5f9; 
+      color: #0f172a; 
+      min-height: 100vh; 
+      font-family: 'Outfit', 'Poppins', sans-serif; 
+    }
+    .hindi-text { font-family: 'Poppins', sans-serif; }
+    .premium-card { background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); }
+    .custom-input { background: #f8fafc; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; }
+    .custom-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+    .custom-input:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; }
+    .date-box { border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.2s ease; background: #ffffff; }
+    .date-box.available { background: #f0fdf4; border-color: #22c55e; }
+    .date-box.selected { background: #0f172a !important; border-color: #0284c7 !important; color: #ffffff !important; }
+    .date-box.selected .date-title, .date-box.selected .date-sub { color: #ffffff !important; }
+    .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
+    .btn-dark { background: #0f172a; color: #ffffff; }
+    
+    /* Standard White Ticket */
+    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
+    
+    /* Professional Red Card Ticket Theme */
+    .printable-slip.red-card-theme {
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important;
+      border: 2px solid #b91c1c !important;
+      box-shadow: 0 15px 30px -5px rgba(185, 28, 28, 0.2) !important;
+    }
+    .printable-slip.red-card-theme .slip-header-title {
+      color: #991b1b !important;
+      border-bottom-color: #fca5a5 !important;
+    }
+    .printable-slip.red-card-theme .kotedar-card-box {
+      background: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+    }
+    .printable-slip.red-card-theme .token-box-container {
+      background: #ffffff !important;
+      border-color: #dc2626 !important;
+    }
+
+    .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
+    .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="p-3 sm:p-6 flex flex-col items-center justify-center">
 
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-6">
-        <h2 class="text-2xl font-bold text-center text-blue-700 mb-2">राशन अपॉइंटमेंट टोकन पोर्टल</h2>
-        <p class="text-sm text-gray-500 text-center mb-6">अपना टोकन स्लॉट बुक करने के लिए राशन कार्ड नंबर दर्ज करें</p>
-
-        <!-- Step 1: Card Input -->
-        <div id="searchSection" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">राशन कार्ड नंबर:</label>
-                <input type="text" id="cardInput" placeholder="उदा. 21XXXXXX0177" 
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <button onclick="fetchCardDetails()" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
-                नाम देखें
-            </button>
-        </div>
-
-        <div id="alertMsg" class="hidden mt-4 p-3 rounded-lg text-sm text-center"></div>
-
-        <!-- Step 2: Show Name & Take Mobile Number for Token -->
-        <div id="tokenSection" class="hidden mt-6 border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4">
-            <div class="text-sm">
-                <span class="text-gray-600">कार्ड धारक का नाम:</span>
-                <div id="holderName" class="text-xl font-bold text-blue-800 mt-1"></div>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">मोबाइल नंबर (10 अंक):</label>
-                <input type="text" id="mobileInput" placeholder="अपना मोबाइल नंबर डालें" max-length="10"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-green-500">
-            </div>
-
-            <button onclick="generateToken()" 
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">
-                टोकन बुक करें
-            </button>
-        </div>
-
-        <!-- Success Result -->
-        <div id="tokenResult" class="hidden mt-6 p-4 border-2 border-dashed border-green-500 bg-green-50 rounded-lg text-center space-y-2">
-            <h3 class="text-lg font-bold text-green-800">टोकन सफलतापूर्वक बुक हो गया!</h3>
-            <p class="text-sm text-gray-600">आपका टोकन नंबर:</p>
-            <div id="tokenNumber" class="text-3xl font-extrabold text-green-700"></div>
-        </div>
+  <div class="w-full max-w-md mx-auto">
+    
+    <div class="text-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 hindi-text leading-tight">टोकन पास पोर्टल</h1>
+      <p class="text-slate-600 text-xs font-bold mt-1 hindi-text">राशन वितरण ऑनलाइन बुकिंग</p>
     </div>
 
-    <script>
-        const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <!-- Booking Form Screen -->
+    <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-7 space-y-5">
+      <div>
+        <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2 hindi-text">बुकिंग तिथि चुनें (लाइव डेटा)</label>
+        <div id="datesContainer" class="grid grid-cols-1 gap-3">
+          <div class="text-center text-xs text-slate-500 py-3 hindi-text">तारीखें लोड हो रही हैं...</div>
+        </div>
+      </div>
 
-        let currentCardData = null;
+      <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
+        
+        <!-- 1. Ration Card Number Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
+          <div class="relative">
+            <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userRation" required maxlength="12" pattern="[0-9]{12}" inputmode="numeric" placeholder="21XXXXXX (12 Digit)" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="autoFetchCardName(this)">
+          </div>
+          <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
+        </div>
 
-        async function fetchCardDetails() {
-            const cardInput = document.getElementById('cardInput').value.trim();
-            const alertMsg = document.getElementById('alertMsg');
-            const tokenSection = document.getElementById('tokenSection');
+        <!-- 2. Full Name Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
+          <div class="relative">
+            <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="text" id="userName" required disabled placeholder="पहले राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
+          </div>
+        </div>
 
-            alertMsg.classList.add('hidden');
-            tokenSection.classList.add('hidden');
+        <!-- 3. Mobile Number Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
+          <div class="relative">
+            <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="tel" id="userPhone" required maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="जैसे: XXXXXXXXXX" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+          </div>
+        </div>
 
-            if (!cardInput) {
-                showAlert('कृपया राशन कार्ड नंबर दर्ज करें।', 'bg-red-100 text-red-700');
-                return;
-            }
+        <button type="submit" id="submitBtn" class="btn-dark w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span class="hindi-text">टोकन बुक करें</span>
+        </button>
+      </form>
+    </div>
 
-            const { data, error } = await _supabase
-                .from('cards')
-                .select('*')
-                .eq('card_number', cardInput)
-                .maybeSingle();
+    <!-- Printable Slip Screen -->
+    <div id="ticketScreen" class="hidden">
+      <div id="slipCardElement" class="printable-slip rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+        <h2 class="slip-header-title text-center text-xl font-black tracking-tight text-slate-900 mb-3 border-b-2 pb-2 border-slate-200">
+          Appointment Token Slip
+        </h2>
 
-            if (error || !data) {
-                showAlert('राशन कार्ड नंबर नहीं मिला!', 'bg-red-100 text-red-700');
-                return;
-            }
+        <div class="kotedar-card-box bg-slate-100 rounded-2xl p-3.5 flex items-center gap-3.5 mb-4 border border-slate-300">
+          <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0">
+            <img id="kotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
+          </div>
+          <div>
+            <div class="text-red-600 font-black text-sm sm:text-base tracking-wide uppercase leading-tight">KOTEDAR - KAPIL DEV YADAV</div>
+            <div class="text-black font-extrabold text-xs tracking-widest mt-1">GUJARPAR</div>
+          </div>
+        </div>
 
-            currentCardData = data;
-            document.getElementById('holderName').innerText = data.holder_name || 'उपलब्ध नहीं';
-            tokenSection.classList.remove('hidden');
+        <div class="token-box-container border-2 border-dashed border-slate-900 rounded-2xl p-4 text-center my-3 bg-slate-50">
+          <p class="text-[11px] font-black tracking-widest uppercase text-slate-700 mb-1">TOKEN NUMBER</p>
+          <div class="text-3xl sm:text-4xl font-black tracking-wider text-black mb-0.5" id="slipTokenNo">-</div>
+          <div class="text-sm font-black text-slate-900 mt-1" id="slipRationLastDigits">----</div>
+        </div>
+
+        <div class="text-xs space-y-2.5 mt-4 text-slate-900 font-semibold px-1">
+          <div class="text-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+            <span class="text-slate-700 font-bold block text-[11px] hindi-text">अनुमानित समय (Expected Time):</span>
+            <span class="text-slate-950 font-black text-base sm:text-lg block mt-0.5 hindi-text" id="slipTimeSlot">06:30 AM से 08:00 AM तक</span>
+          </div>
+
+          <div class="pt-2 space-y-2 border-t border-slate-200 text-slate-900">
+            <p class="flex justify-between"><strong>Appointment Date:</strong> <span id="slipDate" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Ration Card No:</strong> <span id="slipRationNo" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Name:</strong> <span id="slipName" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Mobile:</strong> <span id="slipPhone" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Generated On:</strong> <span id="slipGeneratedOn" class="font-semibold text-slate-600">-</span></p>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-600 italic leading-tight text-center hindi-text">
+            <strong>नोट:</strong> कृपया अपने दिए गए समय पर उपस्थित होने का कष्ट करें।
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button onclick="downloadAsJPG()" class="w-full py-3.5 px-4 rounded-xl bg-slate-900 text-sm font-bold text-white flex items-center justify-center gap-2 shadow-md transition">
+          <i data-lucide="image-down" class="w-5 h-5"></i> <span class="hindi-text">JPG डाउनलोड करें</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Supabase Credentials
+    const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    var RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
+    var selectedDate = '';
+    var isBookingInProgress = false;
+    var isCurrentCardRed = false;
+
+    // Auto Fetch Function from Supabase Database ('cards' table)
+    async function autoFetchCardName(input) {
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
+      var cardNo = input.value.trim();
+      var nameInput = document.getElementById('userName');
+      var statusBox = document.getElementById('cardStatusMsg');
+      
+      isCurrentCardRed = false;
+
+      if (cardNo.length === 12) {
+        statusBox.innerText = "कार्ड खोजा जा रहा है...";
+        statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-blue-600 block";
+
+        try {
+          // Supabase से कार्ड नंबर सर्च करें
+          const { data, error } = await supabaseClient
+            .from('cards')
+            .select('*')
+            .eq('card_number', cardNo)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (data) {
+            nameInput.disabled = false;
+            var matchedName = data.holder_name || '';
+            nameInput.value = matchedName;
+
+            // अगर यूनिट्स या कार्ड टाइप से पहचानना हो (या रेड कार्ड डेटाबेस के आधार पर)
+            // यहाँ हम चेक कर सकते हैं कि यह रेड कार्ड है या नहीं (जैसे units या किसी अन्य पहचान से, या अगर आप चाहें तो लाल कार्ड की पहचान जोड़ सकते हैं)
+            // उदाहरण के लिए अगर units या data में red card flag हो:
+            isCurrentCardRed = (data.card_type === 'red' || data.is_red === true || Number(data.units) <= 3); // अपनी जरूरत अनुसार शर्त रख सकते हैं
+
+            statusBox.innerText = "✓ राशन कार्ड मिल गया - नाम: " + matchedName;
+            statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
+          } else {
+            nameInput.disabled = false;
+            nameInput.value = "";
+            nameInput.placeholder = "अपना नाम दर्ज करें";
+            statusBox.innerText = "• यह कार्ड नंबर डेटाबेस में नहीं है (मैनुअल नाम दर्ज करें)";
+            statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-amber-600 block";
+            nameInput.focus();
+          }
+        } catch (err) {
+          console.error(err);
+          nameInput.disabled = false;
+          statusBox.innerText = "• कनेक्शन त्रुटि, कृपया नाम मैन्युअल रूप से दर्ज करें";
+          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
+        }
+      } else {
+        nameInput.value = "";
+        nameInput.disabled = true;
+        nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
+        statusBox.className = "hidden";
+      }
+    }
+
+    window.addEventListener('beforeunload', function (e) {
+      if (isBookingInProgress) {
+        e.preventDefault();
+        e.returnValue = 'टोकन बुकिंग प्रक्रिया में है, क्या आप बाहर जाना चाहते हैं?';
+      }
+    });
+
+    window.onload = function() {
+      var imgElem = document.getElementById('kotedarImg');
+      imgElem.src = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      loadSlotsData();
+    };
+
+    function getDevanagariFirstLetterEnglish(word) {
+      if (!word) return 'T';
+      var char = word.charAt(0);
+      
+      var map = {
+        'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ऋ': 'R', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'A',
+        'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'ङ': 'N',
+        'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J', 'ञ': 'N',
+        'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'ण': 'N',
+        'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N',
+        'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M',
+        'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H',
+        'क्ष': 'K', 'त्र': 'T', 'ज्ञ': 'G', 'ॐ': 'O'
+      };
+
+      if (map[char]) return map[char];
+      if (/[a-zA-Z]/.test(char)) return char.toUpperCase();
+      return 'T';
+    }
+
+    function getNameInitials(fullName) {
+      if (!fullName) return 'TK';
+      var parts = fullName.trim().split(/\s+/);
+      
+      var firstPart = parts[0];
+      var secondPart = parts.length > 1 ? parts[parts.length - 1] : '';
+
+      var firstInitial = getDevanagariFirstLetterEnglish(firstPart);
+      var secondInitial = secondPart ? getDevanagariFirstLetterEnglish(secondPart) : '';
+
+      return (firstInitial + secondInitial).toUpperCase();
+    }
+
+    async function loadSlotsData() {
+      try {
+        const { data: slotsList, error } = await supabaseClient
+          .from('slots')
+          .select('*')
+          .order('date', { ascending: true });
+
+        if (error) throw error;
+        renderDateBoxes(slotsList);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('datesContainer').innerHTML = '<div class="text-center text-xs text-red-500 py-3 hindi-text">तारीखें लोड करने में विफल!</div>';
+      }
+    }
+
+    function renderDateBoxes(slotsList) {
+      var container = document.getElementById('datesContainer');
+      container.innerHTML = '';
+
+      if (!slotsList || slotsList.length === 0) {
+        container.innerHTML = '<div class="text-center text-xs text-slate-500 py-3 hindi-text">अभी कोई तारीख उपलब्ध नहीं है।</div>';
+        return;
+      }
+
+      slotsList.forEach(function(item) {
+        var booked = item.booked_count || 0;
+        var limit = item.limit_count || 200;
+        var left = limit - booked;
+        var isFull = left <= 0;
+        var percent = Math.min(100, Math.max(0, Math.round((booked / limit) * 100)));
+
+        var statusClass = isFull ? 'full' : 'available';
+        var statusText = isFull ? 'FULL (0 टोकन बाकी)' : left + ' टोकन उपलब्ध (' + limit + ' में से)';
+
+        var box = document.createElement('div');
+        box.className = 'date-box ' + statusClass + ' p-3.5 rounded-2xl flex flex-col gap-2 shadow-sm relative overflow-hidden';
+        
+        if (!isFull) {
+          box.onclick = function() { selectDate(this, item.date); };
         }
 
-        function generateToken() {
-            const mobile = document.getElementById('mobileInput').value.trim();
-            if(!mobile || mobile.length < 10) {
-                alert('कृपया सही मोबाइल नंबर दर्ज करें।');
-                return;
+        box.innerHTML = 
+          '<div class="flex items-center justify-between w-full">' +
+            '<div>' +
+              '<div class="text-sm font-black date-title text-slate-900 hindi-text">📅 ' + (item.label || item.date) + '</div>' +
+              '<div class="text-xs font-bold ' + (isFull ? 'text-red-600' : 'text-emerald-700') + ' mt-0.5 date-sub hindi-text">' + statusText + '</div>' +
+            '</div>' +
+            '<div class="text-xs font-bold">' +
+              (isFull ? '<span class="text-red-600 bg-red-100 px-2.5 py-1 rounded-lg hindi-text">फुल</span>' : '<span class="text-slate-900 bg-slate-200 px-2.5 py-1 rounded-lg hindi-text">चुनें ➔</span>') +
+            '</div>' +
+          '</div>' +
+          '<div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">' +
+            '<div class="' + (isFull ? 'bg-red-500' : 'bg-emerald-500') + ' h-full transition-all duration-500" style="width: ' + percent + '%"></div>' +
+          '</div>';
+
+        container.appendChild(box);
+      });
+    }
+
+    function selectDate(element, date) {
+      var allBoxes = document.querySelectorAll('.date-box');
+      allBoxes.forEach(function(el) { el.classList.remove('selected'); });
+      element.classList.add('selected');
+      selectedDate = date;
+    }
+
+    async function handleBooking(event) {
+      event.preventDefault();
+
+      if (!selectedDate) {
+        alert('कृपया बुकिंग की तारीख चुनें!');
+        return;
+      }
+
+      var name = document.getElementById('userName').value.trim();
+      var phone = document.getElementById('userPhone').value.trim();
+      var ration = document.getElementById('userRation').value.trim();
+
+      if (!name) {
+        alert('कृपया नाम दर्ज करें!');
+        return;
+      }
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="hindi-text">टोकन जनरेट हो रहा है...</span>';
+      isBookingInProgress = true;
+
+      try {
+        const { count, error: countErr } = await supabaseClient
+          .from('bookings')
+          .select('*', { count: 'exact', head: true })
+          .eq('token_date', selectedDate);
+
+        if (countErr) throw countErr;
+
+        var tokenSeq = (count || 0) + 1;
+
+        if (tokenSeq > 200) {
+          alert('क्षमा करें, इस तारीख के सभी 200 टोकन बुक हो चुके हैं!');
+          location.reload();
+          return;
+        }
+
+        var initials = getNameInitials(name);
+        var formattedNum = String(tokenSeq).padStart(3, '0');
+        var fullTokenString = initials + "-" + formattedNum;
+
+        const { error: insertErr } = await supabaseClient
+          .from('bookings')
+          .insert([
+            {
+              name: name,
+              phone: phone,
+              card: ration,
+              token_date: selectedDate,
+              token_number: tokenSeq
             }
+          ]);
 
-            const randomToken = "TKN-" + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('tokenNumber').innerText = randomToken;
-            document.getElementById('tokenSection').classList.add('hidden');
-            document.getElementById('tokenResult').classList.remove('hidden');
-        }
+        if (insertErr) throw insertErr;
 
-        function showAlert(msg, classes) {
-            const alertMsg = document.getElementById('alertMsg');
-            alertMsg.className = `mt-4 p-3 rounded-lg text-sm text-center ${classes}`;
-            alertMsg.innerText = msg;
-            alertMsg.classList.remove('hidden');
-        }
-    </script>
+        await supabaseClient
+          .from('slots')
+          .update({ booked_count: tokenSeq })
+          .eq('date', selectedDate);
+
+        isBookingInProgress = false;
+        onSuccess({
+          tokenDisplay: fullTokenString,
+          rationNo: ration,
+          expectedTime: "06:30 AM से 08:00 AM तक",
+          date: selectedDate,
+          name: name,
+          phone: phone
+        });
+
+      } catch (err) {
+        isBookingInProgress = false;
+        onFailure(err);
+      }
+    }
+
+    function onSuccess(res) {
+      document.getElementById('bookingScreen').classList.add('hidden');
+      document.getElementById('ticketScreen').classList.remove('hidden');
+
+      var slipCard = document.getElementById('slipCardElement');
+      
+      if (isCurrentCardRed) {
+        slipCard.classList.add('red-card-theme');
+      } else {
+        slipCard.classList.remove('red-card-theme');
+      }
+
+      document.getElementById('slipTokenNo').innerText = res.tokenDisplay;
+      
+      var last4 = res.rationNo ? res.rationNo.slice(-4) : "----";
+      document.getElementById('slipRationLastDigits').innerText = last4;
+
+      document.getElementById('slipRationNo').innerText = res.rationNo;
+      document.getElementById('slipTimeSlot').innerText = res.expectedTime;
+      document.getElementById('slipDate').innerText = res.date;
+      document.getElementById('slipName').innerText = res.name;
+      document.getElementById('slipPhone').innerText = res.phone;
+
+      var now = new Date();
+      document.getElementById('slipGeneratedOn').innerText = now.toLocaleDateString() + ', ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      lucide.createIcons();
+    }
+
+    function onFailure(err) {
+      alert(err.message || "त्रुटि: सबमिट करने में समस्या आई!");
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span class="hindi-text">टोकन बुक करें</span>';
+      lucide.createIcons();
+    }
+
+    function downloadAsJPG() {
+      var slipElement = document.getElementById('slipCardElement');
+      var tokenNo = document.getElementById('slipTokenNo').innerText || 'Token';
+
+      html2canvas(slipElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      }).then(function(canvas) {
+        var image = canvas.toDataURL("image/jpeg", 0.95);
+        var link = document.createElement('a');
+        link.download = 'Token_' + tokenNo + '.jpg';
+        link.href = image;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+  </script>
 </body>
 </html>
