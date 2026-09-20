@@ -41,7 +41,7 @@
     </div>
   </div>
 
-  <!-- Main Content (Hidden until authenticated) -->
+  <!-- Main Content -->
   <div id="adminMainContent" class="hidden">
     <!-- Header -->
     <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
@@ -112,7 +112,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit / XXXXXX)</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
               <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase">
             </div>
             <div>
@@ -155,9 +155,9 @@
         <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-              <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register & Data Update
+              <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register & Details
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">List se direct card number aur naam update karein jo seedha Supabase mein save hoga</p>
+            <p class="text-xs text-slate-500 mt-0.5">Details dropdown se father name, mother name, units dekhein aur card number update karein</p>
           </div>
 
           <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -179,13 +179,14 @@
                 <th class="p-3.5">Card Holder Name</th>
                 <th class="p-3.5">Booked By</th>
                 <th class="p-3.5">Phone</th>
-                <th class="p-3.5">Card No. / Update</th>
+                <th class="p-3.5">Card No.</th>
+                <th class="p-3.5">Family Details / Update</th>
                 <th class="p-3.5 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
               <tr>
-                <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
+                <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
               </tr>
             </tbody>
           </table>
@@ -196,7 +197,6 @@
   </div>
 
   <script>
-    // यहाँ अपना गुप्त पासवर्ड सेट कर लें (जैसे: kapil123 या kotedar2026)
     const ADMIN_SECRET_PASSWORD = "kapil2026"; 
 
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
@@ -208,7 +208,6 @@
     var supabaseCardsCache = {};
 
     window.onload = function() {
-      // Check if already logged in during session
       if (sessionStorage.getItem("adminAuth") === "true") {
         unlockAdminPanel();
       }
@@ -251,7 +250,10 @@
           data.forEach(function(card) {
             var cNum = String(card.card_number || '').trim();
             supabaseCardsCache[cNum] = {
-              holderName: card.holder_name || 'N/A'
+              holderName: card.holder_name || 'N/A',
+              fatherHusbandName: card.father_husband_name || card.fatherName || 'N/A',
+              motherName: card.mother_name || card.motherName || 'N/A',
+              units: card.units || 'N/A'
             };
           });
         }
@@ -339,7 +341,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
         return;
       }
 
@@ -350,7 +352,27 @@
         var fullToken = initials + '-' + formattedNum;
 
         var cardNo = String(b.card || b.cardNo || b.ration_card_number || b.card_number || '').trim();
-        var cardInfo = supabaseCardsCache[cardNo] || { holderName: b.name || 'N/A' };
+        
+        // Lookup card details from cache
+        var cardInfo = supabaseCardsCache[cardNo];
+        if (!cardInfo) {
+          var last4 = cardNo.slice(-4);
+          for (var key in supabaseCardsCache) {
+            if (key.endsWith(last4)) {
+              cardInfo = supabaseCardsCache[key];
+              break;
+            }
+          }
+        }
+
+        if (!cardInfo) {
+          cardInfo = {
+            holderName: b.name || 'N/A',
+            fatherHusbandName: 'N/A',
+            motherName: 'N/A',
+            units: 'N/A'
+          };
+        }
 
         var tr = document.createElement('tr');
         tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
@@ -366,11 +388,23 @@
           '<td class="p-3.5 font-bold text-blue-700">' + cardInfo.holderName + '</td>' +
           '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
           '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
+          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
           '<td class="p-3.5">' +
-            '<div class="flex items-center gap-1.5">' +
-              '<input type="text" id="card-in-' + b.id + '" value="' + cardNo + '" maxlength="12" class="w-28 p-1 border border-slate-300 rounded font-mono text-xs uppercase bg-white">' +
-              '<button onclick="quickUpdateCard(' + b.id + ')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded text-[11px] transition shadow-sm">Save</button>' +
-            '</div>' +
+            '<details class="cursor-pointer">' +
+              '<summary class="text-blue-600 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> View Details / Update</summary>' +
+              '<div class="mt-2 p-3 bg-slate-100 border border-slate-200 rounded-lg text-[11px] space-y-1.5 font-sans shadow-inner">' +
+                '<p><b>Holder Name:</b> ' + cardInfo.holderName + '</p>' +
+                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
+                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
+                '<p><b>Units:</b> <span class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
+                '<hr class="border-slate-300 my-1.5">' +
+                '<div class="space-y-1 pt-0.5">' +
+                  '<label class="block font-bold text-slate-700">असली 12 अंक कार्ड नंबर भरें:</label>' +
+                  '<input type="text" id="up-card-' + b.id + '" value="' + cardNo + '" maxlength="12" class="w-full p-1.5 border border-slate-300 rounded font-mono text-xs uppercase bg-white">' +
+                  '<button onclick="quickUpdateCard(' + b.id + ')" class="mt-1.5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs transition">Supabase में सेव करें</button>' +
+                '</div>' +
+              '</div>' +
+            '</details>' +
           '</td>' +
           '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
             (isDone
@@ -386,7 +420,7 @@
     }
 
     async function quickUpdateCard(bookingId) {
-      var newCardNo = document.getElementById('card-in-' + bookingId).value.trim().toUpperCase();
+      var newCardNo = document.getElementById('up-card-' + bookingId).value.trim().toUpperCase();
 
       if (!newCardNo || newCardNo.length !== 12) {
         alert('कृपया पूरा 12 अंकों का वैध राशन कार्ड नंबर दर्ज करें!');
@@ -394,7 +428,6 @@
       }
 
       try {
-        // Update card in bookings table in Supabase
         const { error: bookingErr } = await supabaseClient
           .from('bookings')
           .update({ card: newCardNo })
@@ -402,7 +435,6 @@
 
         if (bookingErr) throw bookingErr;
 
-        // Upsert into cards master table so future lookups find it
         await supabaseClient
           .from('cards')
           .upsert([{ card_number: newCardNo }], { onConflict: 'card_number' });
@@ -520,7 +552,7 @@
 
     async function addNewSlot(e) {
       e.preventDefault();
-      var date = document.getElementById('slotDate.value' || 'slotDate').value;
+      var date = document.getElementById('slotDate').value;
       var label = document.getElementById('slotLabel').value;
       var limit = parseInt(document.getElementById('slotLimit').value);
 
