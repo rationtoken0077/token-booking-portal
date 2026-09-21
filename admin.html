@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,38 +15,41 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', 'Hind', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    body { font-family: 'Outfit', 'Poppins', sans-serif; background-color: #f1f5f9; color: #0f172a; }
     .done-row { background-color: #f0fdf4 !important; }
+    .done-text { text-decoration: line-through; color: #166534 !important; }
     summary::-webkit-details-marker { display:none; }
     
-    .printable-slip { 
-      background: #ffffff; 
-      color: #0f172a; 
-      border: 2px dashed #0f172a; 
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    }
+    /* Slip Styles */
+    .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
     .printable-slip.red-card-theme {
-      background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important;
-      border: 2px dashed #b91c1c !important;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
+      border: 3px solid #dc2626 !important;
+      box-shadow: 0 20px 35px -5px rgba(220, 38, 38, 0.25) !important;
     }
+    .printable-slip.red-card-theme .slip-header-title { color: #991b1b !important; border-bottom-color: #fca5a5 !important; }
+    .printable-slip.red-card-theme .kotedar-card-box { background: #ffe4e6 !important; border-color: #f87171 !important; }
+    .printable-slip.red-card-theme .token-box-container { background: #ffffff !important; border: 2px dashed #dc2626 !important; }
+    .photo-container { width: 70px; height: 70px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
+    .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-900 pb-12">
+<body class="bg-slate-100 min-h-screen text-slate-900 pb-12">
 
   <!-- Password Protection Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 border border-slate-200">
       <div class="text-center space-y-1">
-        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold">
+        <div class="w-12 h-12 bg-slate-100 text-slate-900 rounded-2xl mx-auto flex items-center justify-center font-bold">
           <i data-lucide="lock" class="w-6 h-6"></i>
         </div>
         <h2 class="font-black text-lg text-slate-900">Admin Authentication</h2>
-        <p class="text-xs text-slate-500">कृपया एडमिन पासवर्ड दर्ज करें</p>
+        <p class="text-xs text-slate-500">Kripya admin password darj karein</p>
       </div>
       <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
-        <input type="password" id="adminPasswordInput" placeholder="पासवर्ड दर्ज करें..." required class="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-sm transition shadow-md">
-          लॉगिन करें
+        <input type="password" id="adminPasswordInput" placeholder="Password darj karein..." required class="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-900">
+        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold p-3 rounded-xl text-sm transition shadow-md">
+          Login Karein
         </button>
       </form>
     </div>
@@ -54,10 +57,11 @@
 
   <!-- Main Content -->
   <div id="adminMainContent" class="hidden">
+    <!-- Header -->
     <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
-          <div class="p-2 bg-blue-600 rounded-xl text-white">
+          <div class="p-2 bg-slate-800 rounded-xl text-white border border-slate-700">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
           <div>
@@ -66,11 +70,11 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition">
+          <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
           </button>
-          <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-3 py-2 rounded-lg text-xs transition">
-            लॉग आउट
+          <button onclick="logoutAdmin()" class="bg-red-500/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-3 py-2 rounded-xl text-xs transition">
+            Log Out
           </button>
         </div>
       </div>
@@ -78,154 +82,116 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
+      <!-- Add New Slot & Manual Admin Booking Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Add Slot Form -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="calendar-plus" class="text-blue-600 w-5 h-5"></i>
+            <i data-lucide="calendar-plus" class="text-slate-900 w-5 h-5"></i>
             <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
           </div>
 
           <form onsubmit="addNewSlot(event)" class="space-y-3">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
-              <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+              <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
-              <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+              <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
-              <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+              <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+            <button type="submit" id="addSlotBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
               <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
             </button>
           </form>
         </div>
 
-        <!-- Admin Direct Booking & Custom Entry Form -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+        <!-- Admin Direct Booking Form with Auto-Fetch & Manual Fallback -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
           <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="user-plus" class="text-emerald-600 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Admin Direct Booking & Database Management</h2>
+            <i data-lucide="user-plus" class="text-slate-900 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking (Auto-Fetch + Manual Entry)</h2>
           </div>
 
           <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
-              <select id="adminBookingDate" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+              <select id="adminBookingDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
                 <option value="">-- Select Date --</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (Full or Match)</label>
-              <input type="text" id="adminCardNo" placeholder="21XXXXXX2054" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase font-mono" oninput="handleAdminCardInput(this)">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
+              <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase font-mono" oninput="adminAutoFetchCard(this)">
             </div>
-            <div class="sm:col-span-2">
-              <div id="cardStatusAlert" class="text-[11px] font-bold px-3 py-1.5 rounded-lg hidden"></div>
+            
+            <!-- Multi Match Dropdown for Admin -->
+            <div id="adminMultiContainer" class="hidden sm:col-span-2 bg-slate-50 border border-slate-300 p-2.5 rounded-xl space-y-1">
+              <label class="block text-xs font-bold text-slate-800">Ek se adhik naam mile, kripya chunein:</label>
+              <select id="adminMultiSelect" onchange="adminSelectMatchedCard(this)" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white font-bold">
+                <option value="">-- Naam Chunein --</option>
+              </select>
             </div>
+
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
-              <input type="text" id="adminHolderName" placeholder="Auto-fetched or Type Manually" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase font-semibold">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name (Manual entry allowed)</label>
+              <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
-              <input type="tel" id="adminPhone" placeholder="Mobile Number (Optional)" maxlength="10" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Father/Husband Name</label>
-              <input type="text" id="adminFatherName" placeholder="Father/Husband Name" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none uppercase font-semibold">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Units</label>
-              <input type="text" id="adminUnits" placeholder="Units Count" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none font-semibold">
+              <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
             </div>
             <div class="sm:col-span-2 flex gap-2">
-              <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
-                Book Token & Generate Exact Main Slip
-              </button>
-              <button type="button" onclick="updateSupabaseRecordFromInputs()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
-                Update DB Record
+              <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs transition">
+                Book Token & Generate Slip
               </button>
             </div>
           </form>
-
-          <!-- Main Portal Exact Match Slip Preview -->
-          <div id="adminSlipPreviewContainer" class="hidden mt-4 pt-4 border-t border-slate-200">
-            <h3 class="text-xs font-bold text-slate-700 mb-2">Generated Slip Preview (Main Portal Format):</h3>
-            
-            <div id="adminMainSlipCard" class="printable-slip rounded-2xl p-5 max-w-sm mx-auto space-y-3">
-              <div class="text-center border-b pb-3 border-slate-200">
-                <span id="admSlipBadge" class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">WHITE CARD</span>
-                <h2 class="text-base font-black text-slate-900 tracking-tight mt-1">FPS RATION TOKEN SLIP</h2>
-                <p class="text-[10px] text-slate-500 font-semibold">Kapil Dev Yadav (Gujarpar)</p>
-              </div>
-
-              <div class="space-y-1.5 text-xs">
-                <div class="flex justify-between bg-slate-100/80 p-2 rounded-lg">
-                  <span class="text-slate-500 font-semibold">Token Number:</span>
-                  <span id="admSlipToken" class="font-black text-blue-600 text-sm"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Distribution Date:</span>
-                  <span id="admSlipDate" class="font-bold text-slate-800"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Card Holder:</span>
-                  <span id="admSlipName" class="font-bold text-slate-800 uppercase"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Ration Card No:</span>
-                  <span id="admSlipCard" class="font-bold font-mono text-slate-800"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Father/Husband:</span>
-                  <span id="admSlipFather" class="font-bold text-slate-800 uppercase"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Units:</span>
-                  <span id="admSlipUnits" class="font-bold text-slate-800"></span>
-                </div>
-                <div class="flex justify-between px-1">
-                  <span class="text-slate-500">Timing Slot:</span>
-                  <span class="font-bold text-emerald-700">06:30 AM - 08:00 AM</span>
-                </div>
-              </div>
-
-              <div class="text-center pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-medium">
-                कृपया निर्धारित समय पर कोटे की दुकान पर पहुँचें।
-              </div>
-            </div>
-
-            <div class="mt-3 text-center">
-              <button onclick="downloadAdminSlip()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-5 rounded-lg shadow transition">
-                Download Slip JPG
-              </button>
-            </div>
-          </div>
         </div>
 
       </div>
 
+      <!-- Active Slots & Seat Controls -->
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
+            <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+          </div>
+          <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
+        </div>
+
+        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
+          <p class="text-xs text-slate-400">Loading active slots...</p>
+        </div>
+      </div>
+
       <!-- Booking Table with Date Filter -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Filter Bar -->
         <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-              <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register & Details
+              <i data-lucide="users" class="text-slate-900 w-5 h-5"></i> Customer Booking Register & Details
             </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Details dropdown se father name, mother name, units dekhein aur card number update karein</p>
           </div>
+
           <div class="flex items-center gap-2 w-full sm:w-auto">
             <label class="text-xs font-bold text-slate-600">Filter Date:</label>
-            <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg p-2 outline-none">
+            <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl p-2 outline-none focus:ring-2 focus:ring-slate-900">
               <option value="ALL">All Dates</option>
             </select>
           </div>
         </div>
 
+        <!-- Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -234,14 +200,17 @@
                 <th class="p-3.5">Token ID</th>
                 <th class="p-3.5">Date</th>
                 <th class="p-3.5">Card Holder Name</th>
+                <th class="p-3.5">Booked By</th>
                 <th class="p-3.5">Phone</th>
                 <th class="p-3.5">Card No.</th>
-                <th class="p-3.5">Family Details (Father / Units)</th>
+                <th class="p-3.5">Family Details / Update</th>
                 <th class="p-3.5 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
-              <tr><td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td></tr>
+              <tr>
+                <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -250,17 +219,71 @@
     </main>
   </div>
 
+  <!-- Printable Slip Modal for Admin -->
+  <div id="adminSlipModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4 relative my-auto">
+      <button onclick="closeAdminSlipModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 z-10">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div id="adminSlipCardElement" class="printable-slip rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <h2 class="slip-header-title text-center text-lg font-black tracking-tight text-slate-900 mb-2 border-b-2 pb-1.5 border-slate-200">
+          Appointment Token Slip
+        </h2>
+
+        <div class="kotedar-card-box bg-slate-100 rounded-xl p-3 flex items-center gap-3 mb-3 border border-slate-300">
+          <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0" style="width: 55px; height: 55px;">
+            <img id="adminModalKotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
+          </div>
+          <div>
+            <div class="text-red-600 font-black text-xs tracking-wide uppercase leading-tight">KOTEDAR - KAPIL DEV YADAV</div>
+            <div class="text-black font-extrabold text-[11px] tracking-widest mt-0.5">GUJARPAR</div>
+          </div>
+        </div>
+
+        <div class="token-box-container border-2 border-dashed border-slate-900 rounded-xl p-3 text-center my-2 bg-slate-50">
+          <p class="text-[10px] font-black tracking-widest uppercase text-slate-700 mb-0.5">TOKEN NUMBER</p>
+          <div class="text-2xl sm:text-3xl font-black tracking-wider text-black mb-0.5" id="admSlipTokenNo">-</div>
+          <div class="text-xs font-black text-slate-900" id="admSlipRationLastDigits">----</div>
+        </div>
+
+        <div class="text-xs space-y-2 mt-3 text-slate-900 font-semibold px-1">
+          <div class="text-center bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+            <span class="text-slate-700 font-bold block text-[10px]">Expected Time:</span>
+            <span class="text-slate-950 font-black text-sm block mt-0.5">06:30 AM से 08:00 AM तक</span>
+          </div>
+
+          <div class="pt-2 space-y-1.5 border-t border-slate-200 text-slate-900 text-[11px]">
+            <p class="flex justify-between"><strong>Appointment Date:</strong> <span id="admSlipDate" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Ration Card No:</strong> <span id="admSlipRationNo" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Name:</strong> <span id="admSlipName" class="font-bold text-black">-</span></p>
+            <p class="flex justify-between"><strong>Mobile:</strong> <span id="admSlipPhone" class="font-bold text-black">-</span></p>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="downloadAdminSlipAsJPG()" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-md transition">
+        <i data-lucide="image-down" class="w-4 h-4"></i> JPG Download Karein
+      </button>
+    </div>
+  </div>
+
   <script>
     const ADMIN_SECRET_PASSWORD = "kapil2026"; 
+    const RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
+
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     var allBookingsData = [];
     var allSlotsData = [];
-    var supabaseCardsCache = {};
+    var globalCardsCache = [];
 
     window.onload = function() {
+      var imgUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      document.getElementById('adminModalKotedarImg').src = imgUrl;
+
       if (sessionStorage.getItem("adminAuth") === "true") {
         unlockAdminPanel();
       }
@@ -274,7 +297,7 @@
         sessionStorage.setItem("adminAuth", "true");
         unlockAdminPanel();
       } else {
-        alert('गलत पासवर्ड!');
+        alert('Galat password! Kripya sahi password darj karein.');
         document.getElementById('adminPasswordInput').value = '';
       }
     }
@@ -291,163 +314,175 @@
     }
 
     async function loadAllData() {
-      await fetchSupabaseCards();
+      await fetchGlobalCardsCache();
       await loadSlots();
       await loadBookings();
     }
 
-    async function fetchSupabaseCards() {
-      supabaseCardsCache = {};
-      const tablesInfo = [
+    async function fetchGlobalCardsCache() {
+      globalCardsCache = [];
+      const tables = [
         { name: 'red_card', type: 'RED' },
+        { name: 'duplicate', type: 'RED' },
         { name: 'white_card', type: 'WHITE' },
-        { name: 'duplicate', type: 'DUPLICATE' },
         { name: 'cards', type: 'WHITE' }
       ];
 
-      for (let t of tablesInfo) {
+      for (let t of tables) {
         try {
-          let { data } = await supabaseClient.from(t.name).select('*');
-          if (data && data.length > 0) {
+          const { data, error } = await supabaseClient.from(t.name).select('*');
+          if (!error && data) {
             data.forEach(function(card) {
-              var cNum = String(
-                card.card_number || 
-                card.ration_card_number || 
-                card.number || 
-                card.card || ''
-              ).trim().toUpperCase();
-
+              var cNum = String(card.card_number || card.ration_card_number || card.number || '').trim().toUpperCase();
+              var hName = String(card.holder_name || card.name || 'N/A').trim().toUpperCase();
               if (cNum) {
-                supabaseCardsCache[cNum] = {
-                  tableName: t.name,
-                  recordId: card.id,
-                  holderName: card.holder_name || card.name || 'N/A',
-                  fatherHusbandName: card.father_husband_name || card.father_name || 'N/A',
-                  motherName: card.mother_name || 'N/A',
-                  units: card.units || 'N/A',
-                  cardType: card.card_type || t.type
-                };
+                globalCardsCache.push({
+                  fullCardNumber: cNum,
+                  holderName: hName,
+                  fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
+                  motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
+                  units: String(card.units || card.total_units || 'N/A').trim(),
+                  cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : (card.card_type || t.type),
+                  tableName: t.name
+                });
               }
             });
           }
-        } catch (e) {
-          console.log("Error loading table: " + t.name, e);
+        } catch (err) {
+          console.error("Error fetching table " + t.name + ":", err);
         }
       }
     }
 
-    function findCardInCache(inputCardNum) {
-      var cleanInput = String(inputCardNum).trim().toUpperCase();
-      if (cleanInput.length < 4) return null;
+    function searchCardsFlexible(inputCard) {
+      var clean = String(inputCard).trim().toUpperCase();
+      if (clean.length < 4) return [];
+      var prefix = clean.substring(0, 2);
+      var suffix = clean.slice(-4);
+      var matches = [];
 
-      if (supabaseCardsCache[cleanInput]) {
-        return { fullCardNumber: cleanInput, details: supabaseCardsCache[cleanInput] };
-      }
-
-      var inPrefix = cleanInput.substring(0, 2); 
-      var inSuffix = cleanInput.slice(-4);        
-
-      for (var dbCardNum in supabaseCardsCache) {
-        var cleanDb = String(dbCardNum).trim().toUpperCase();
-        if (cleanDb.length >= 6) {
-          var dbPrefix = cleanDb.substring(0, 2);
-          var dbSuffix = cleanDb.slice(-4);
-
-          if (inPrefix === dbPrefix && inSuffix === dbSuffix) {
-            return {
-              fullCardNumber: cleanDb,
-              details: supabaseCardsCache[cleanDb]
-            };
+      globalCardsCache.forEach(function(card) {
+        var dbClean = card.fullCardNumber;
+        if (dbClean.length >= 4) {
+          if (prefix === dbClean.substring(0, 2) && suffix === dbClean.slice(-4)) {
+            matches.push(card);
           }
         }
-      }
-      return null;
+      });
+      return matches;
     }
 
-    function handleAdminCardInput(input) {
-      var val = input.value.trim().toUpperCase();
-      var alertBox = document.getElementById('cardStatusAlert');
+    // Admin Auto Fetch Logic with Manual Fallback
+    function adminAutoFetchCard(input) {
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
+      var cardNo = input.value;
       var nameInput = document.getElementById('adminHolderName');
-      var fatherInput = document.getElementById('adminFatherName');
-      var unitsInput = document.getElementById('adminUnits');
+      var multiContainer = document.getElementById('adminMultiContainer');
+      var multiSelect = document.getElementById('adminMultiSelect');
 
-      if (val.length >= 4) {
-        let matched = findCardInCache(val);
-        if (matched) {
-          nameInput.value = matched.details.holderName;
-          fatherInput.value = matched.details.fatherHusbandName;
-          unitsInput.value = matched.details.units;
-          alertBox.className = "text-[11px] font-bold px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 block";
-          alertBox.innerText = "✓ मिल गया: " + matched.details.holderName + " (डेटाबेस से मैच हो गया)";
+      multiContainer.classList.add('hidden');
+      multiSelect.innerHTML = '<option value="">-- Naam Chunein --</option>';
+
+      if (cardNo.length === 12) {
+        let matches = searchCardsFlexible(cardNo);
+        if (matches.length > 0) {
+          if (matches.length === 1) {
+            nameInput.value = matches[0].holderName;
+          } else {
+            multiContainer.classList.remove('hidden');
+            matches.forEach(function(item, idx) {
+              var opt = document.createElement('option');
+              opt.value = idx;
+              opt.textContent = item.holderName + (item.cardType === 'RED' ? ' [Red Card]' : ' [White Card]');
+              opt.dataset.name = item.holderName;
+              multiSelect.appendChild(opt);
+            });
+          }
         } else {
-          nameInput.value = "";
-          fatherInput.value = "";
-          unitsInput.value = "";
-          alertBox.className = "text-[11px] font-bold px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 block";
-          alertBox.innerText = "⚠ यह डेटाबेस में नहीं है। आप मैन्युअल रूप से विवरण दर्ज कर सकते हैं या नया जोड़ सकते हैं।";
+          // Database mein nahi mila toh admin manual naam type kar sakta hai, isliye alert ya restriction nahi lagayi
         }
-      } else {
-        alertBox.className = "hidden";
       }
     }
 
-    async function updateSupabaseRecordFromInputs() {
-      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
-      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
-      var fatherName = document.getElementById('adminFatherName').value.trim().toUpperCase();
-      var units = document.getElementById('adminUnits').value.trim();
-
-      if (!cardNo) {
-        alert('कृपया पहले राशन कार्ड नंबर दर्ज करें!');
-        return;
-      }
-
-      let matched = findCardInCache(cardNo);
-      if (!matched) {
-        alert('यह कार्ड डेटाबेस में नहीं मिला जिसे अपडेट किया जा सके।');
-        return;
-      }
-
-      var tableName = matched.details.tableName;
-      var recordId = matched.details.recordId;
-
-      var updateObj = {
-        holder_name: holderName,
-        father_husband_name: fatherName,
-        units: units
-      };
-
-      const { error } = await supabaseClient.from(tableName).update(updateObj).eq('id', recordId);
-      if (error) {
-        alert('सुपाबेस अपडेट करने में त्रुटि: ' + error.message);
-      } else {
-        alert('सुपाबेस डेटाबेस सफलतापूर्वक अपडेट हो गया है!');
-        await fetchSupabaseCards();
+    function adminSelectMatchedCard(sel) {
+      if (sel.value !== "") {
+        document.getElementById('adminHolderName').value = sel.options[sel.selectedIndex].dataset.name;
       }
     }
 
     async function loadSlots() {
-      const { data } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+      const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+      if (error) { console.error(error); return; }
+
       allSlotsData = data || [];
+      var slotsContainer = document.getElementById('slotsContainer');
       var filterSelect = document.getElementById('dateFilter');
       var adminBookingDate = document.getElementById('adminBookingDate');
+      var slotsCountText = document.getElementById('slotsCountText');
       
+      slotsContainer.innerHTML = '';
+      var currentFilter = filterSelect.value;
       filterSelect.innerHTML = '<option value="ALL">All Dates</option>';
       adminBookingDate.innerHTML = '<option value="">-- Select Date --</option>';
+      slotsCountText.innerText = allSlotsData.length + " Slots Active";
+
+      if (allSlotsData.length === 0) {
+        slotsContainer.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No slots created yet.</p>';
+        return;
+      }
 
       allSlotsData.forEach(function(slot) {
+        var booked = slot.booked_count || 0;
+        var limit = slot.limit_count || 200;
+
+        var card = document.createElement('div');
+        card.className = 'p-3 rounded-2xl border border-slate-200 bg-slate-50 flex justify-between items-center hover:border-slate-300 transition';
+        card.innerHTML = 
+          '<div>' +
+            '<div class="font-bold text-slate-900 text-xs">' + (slot.label || slot.date) + '</div>' +
+            '<div class="text-[11px] text-slate-500 font-medium">Code: ' + slot.date + ' | <span class="text-slate-900 font-bold">' + booked + '/' + limit + ' Booked</span></div>' +
+          '</div>' +
+          '<button onclick="deleteSlot(\'' + slot.date + '\')" title="Delete Date Slot" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition">' +
+            '<i data-lucide="trash-2" class="w-4 h-4"></i>' +
+          '</button>';
+        slotsContainer.appendChild(card);
+
         var opt = document.createElement('option');
         opt.value = slot.date;
         opt.innerText = (slot.label || slot.date);
         filterSelect.appendChild(opt);
-        adminBookingDate.appendChild(opt.cloneNode(true));
+
+        var opt2 = opt.cloneNode(true);
+        adminBookingDate.appendChild(opt2);
       });
+
+      filterSelect.value = currentFilter;
       lucide.createIcons();
     }
 
+    function getDevanagariFirstLetterEnglish(word) {
+      if (!word) return 'T';
+      var char = word.charAt(0);
+      var map = {
+        'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ऋ': 'R', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'A',
+        'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'ङ': 'N', 'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J', 'ञ': 'N',
+        'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'ण': 'N', 'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N',
+        'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M', 'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H'
+      };
+      return map[char] || (/[a-zA-Z]/.test(char) ? char.toUpperCase() : 'T');
+    }
+
+    function getNameInitials(fullName) {
+      if (!fullName) return 'TK';
+      var parts = fullName.trim().split(/\s+/);
+      var firstInitial = getDevanagariFirstLetterEnglish(parts[0]);
+      var secondInitial = parts.length > 1 ? getDevanagariFirstLetterEnglish(parts[parts.length - 1]) : '';
+      return (firstInitial + secondInitial).toUpperCase();
+    }
+
     async function loadBookings() {
-      const { data } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
-      allBookingsData = data || [];
+      const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
+      allBookingsData = (!error && data) ? data : [];
       filterBookingsByDate();
     }
 
@@ -455,40 +490,113 @@
       var selectedDate = document.getElementById('dateFilter').value;
       var tbody = document.getElementById('bookingsTableBody');
       tbody.innerHTML = '';
+
       var filtered = allBookingsData;
       if (selectedDate !== 'ALL') {
-        filtered = allBookingsData.filter(function(b) { return b.token_date === selectedDate; });
+        filtered = allBookingsData.filter(function(b) { return b.token_date === selectedDate || b.date === selectedDate; });
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">No booking records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
         return;
       }
 
       filtered.forEach(function(b) {
         var isDone = (b.status === 'COMPLETED');
-        var cardNo = String(b.card || '').trim();
-        let matchedInfo = findCardInCache(cardNo);
-        var cardDetails = matchedInfo ? matchedInfo.details : { fatherHusbandName: 'मैन्युअल एंट्री', units: 'N/A' };
+        var cardNo = String(b.card || b.cardNo || b.ration_card_number || '').trim();
+        
+        var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
+        if (!cardInfo && cardNo) {
+          var last4 = cardNo.slice(-4);
+          cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber.endsWith(last4); });
+        }
+        if (!cardInfo) {
+          cardInfo = { holderName: b.name || 'N/A', fatherHusbandName: 'N/A (Manual Entry)', motherName: 'N/A', units: 'N/A', cardType: 'WHITE' };
+        }
+
+        var initials = getNameInitials(cardInfo.holderName || b.name);
+        var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
+        var fullToken = initials + '-' + formattedNum;
 
         var tr = document.createElement('tr');
         tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
-        tr.innerHTML = `
-          <td class="p-3.5">${isDone ? '<span class="text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded text-[10px]">Completed</span>' : '<span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded text-[10px]">Pending</span>'}</td>
-          <td class="p-3.5 font-bold">${b.token_number || '-'}</td>
-          <td class="p-3.5">${b.token_date}</td>
-          <td class="p-3.5 font-bold text-blue-700">${b.name}</td>
-          <td class="p-3.5">${b.phone || 'N/A'}</td>
-          <td class="p-3.5 font-mono font-bold">${cardNo}</td>
-          <td class="p-3.5 text-slate-600 text-[11px]"><b>पिता/पति:</b> ${cardDetails.fatherHusbandName}<br><b>यूनिट:</b> ${cardDetails.units}</td>
-          <td class="p-3.5 text-center flex items-center justify-center gap-1">
-            <button onclick="toggleStatus(${b.id}, '${isDone ? 'PENDING' : 'COMPLETED'})" class="bg-${isDone ? 'slate' : 'emerald'}-600 text-white px-2 py-1 rounded text-[11px]">${isDone ? 'Undo' : 'Done'}</button>
-            <button onclick="deleteBooking(${b.id})" class="bg-red-100 text-red-700 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        `;
+
+        tr.innerHTML = 
+          '<td class="p-3.5">' +
+            (isDone ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md"><i data-lucide="check-circle" class="w-3 h-3"></i> Completed</span>' 
+                    : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span>') +
+          '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + fullToken + '</td>' +
+          '<td class="p-3.5 text-slate-600 font-medium">' + (b.token_date || b.date || '-') + '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + cardInfo.holderName + '</td>' +
+          '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
+          '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
+          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
+          '<td class="p-3.5">' +
+            '<details class="cursor-pointer">' +
+              '<summary class="text-slate-900 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> View Details / Update</summary>' +
+              '<div class="mt-2 p-3 bg-slate-100 border border-slate-200 rounded-xl text-[11px] space-y-1.5 font-sans shadow-inner">' +
+                '<p><b>Holder Name:</b> ' + cardInfo.holderName + '</p>' +
+                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
+                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
+                '<p><b>Units:</b> <span class="bg-slate-200 text-slate-900 px-1 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
+                '<hr class="border-slate-300 my-1.5">' +
+                '<div class="space-y-1 pt-0.5">' +
+                  '<label class="block font-bold text-slate-700">Asli 12 ank card number bharein:</label>' +
+                  '<input type="text" id="up-card-' + b.id + '" value="' + cardNo + '" maxlength="12" class="w-full p-1.5 border border-slate-300 rounded-lg font-mono text-xs uppercase bg-white">' +
+                  '<button onclick="quickUpdateCard(' + b.id + ')" class="mt-1.5 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-1 px-2 rounded-lg text-xs transition">Supabase mein save karein</button>' +
+                '</div>' +
+              '</div>' +
+            '</details>' +
+          '</td>' +
+          '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
+            '<button onclick=\'showAdminSlip(' + JSON.stringify(b).replace(/'/g, "&apos;") + ', ' + (cardInfo.cardType === 'RED') + ')\' class="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-lg text-[11px]" title="View Slip"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>' +
+            (isDone ? '<button onclick="toggleStatus(' + (b.id || 0) + ', \'PENDING\')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2 py-1 rounded-lg text-[11px] transition">Undo</button>'
+                    : '<button onclick="toggleStatus(' + (b.id || 0) + ', \'COMPLETED\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1 transition shadow-sm"><i data-lucide="check" class="w-3 h-3"></i> Done</button>') +
+            '<button onclick="deleteBooking(' + (b.id || 0) + ')" class="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded-lg text-[11px]" title="Delete Booking"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' +
+          '</td>';
+
         tbody.appendChild(tr);
       });
+
       lucide.createIcons();
+    }
+
+    function showAdminSlip(booking, isRed) {
+      var initials = getNameInitials(booking.name);
+      var tokenStr = initials + "-" + String(booking.token_number || 1).padStart(3, '0');
+      var last4 = booking.card ? booking.card.slice(-4) : "----";
+
+      var slipCard = document.getElementById('adminSlipCardElement');
+      if (isRed) {
+        slipCard.classList.add('red-card-theme');
+      } else {
+        slipCard.classList.remove('red-card-theme'); // White card / manual entry default theme
+      }
+
+      document.getElementById('admSlipTokenNo').innerText = tokenStr;
+      document.getElementById('admSlipRationLastDigits').innerText = "Card Ending: " + last4;
+      document.getElementById('admSlipDate').innerText = booking.token_date || booking.date;
+      document.getElementById('admSlipRationNo').innerText = booking.card;
+      document.getElementById('admSlipName').innerText = booking.name;
+      document.getElementById('admSlipPhone').innerText = booking.phone;
+
+      document.getElementById('adminSlipModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAdminSlipModal() {
+      document.getElementById('adminSlipModal').classList.add('hidden');
+    }
+
+    function downloadAdminSlipAsJPG() {
+      var slipElement = document.getElementById('adminSlipCardElement');
+      html2canvas(slipElement, { scale: 3, useCORS: true }).then(function(canvas) {
+        var link = document.createElement('a');
+        link.download = 'Token_Slip_' + document.getElementById('admSlipTokenNo').innerText + '.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
     }
 
     async function adminDirectBooking(e) {
@@ -497,78 +605,108 @@
       var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
       var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
       var phone = document.getElementById('adminPhone').value.trim();
-      var fatherName = document.getElementById('adminFatherName').value.trim().toUpperCase();
-      var units = document.getElementById('adminUnits').value.trim();
 
-      const { data: existing } = await supabaseClient.from('bookings').select('*').eq('token_date', date).eq('card', cardNo);
-      if (existing && existing.length > 0) {
-        alert('त्रुटि: इस राशन कार्ड नंबर से इस तारीख पर पहले ही टोकन बुक किया जा चुका है!');
+      if (!date || !cardNo || !holderName) {
+        alert('Kripya sabhi avashyak jankari bharein!');
         return;
       }
 
-      const { count } = await supabaseClient.from('bookings').select('*', { count: 'exact', head: true }).eq('token_date', date);
-      var tokenSeq = (count || 0) + 1;
+      try {
+        const { count, error: countErr } = await supabaseClient
+          .from('bookings')
+          .select('*', { count: 'exact', head: true })
+          .eq('token_date', date);
 
-      await supabaseClient.from('bookings').insert([{ name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq, status: 'PENDING' }]);
-      await supabaseClient.from('slots').update({ booked_count: tokenSeq }).eq('date', date);
+        if (countErr) throw countErr;
+        var tokenSeq = (count || 0) + 1;
 
-      var slipContainer = document.getElementById('adminMainSlipCard');
-      var badge = document.getElementById('admSlipBadge');
-      
-      let matchedInfo = findCardInCache(cardNo);
-      var isRed = (cardNo.startsWith('RED') || (matchedInfo && matchedInfo.details.cardType === 'RED'));
-      
-      if (isRed) {
-        slipContainer.className = "printable-slip red-card-theme rounded-2xl p-5 max-w-sm mx-auto space-y-3";
-        badge.className = "bg-red-100 text-red-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase";
-        badge.innerText = "RED CARD (अन्त्योदय)";
-      } else {
-        slipContainer.className = "printable-slip rounded-2xl p-5 max-w-sm mx-auto space-y-3";
-        badge.className = "bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase";
-        badge.innerText = "WHITE CARD";
-      }
+        const { error: insertErr } = await supabaseClient
+          .from('bookings')
+          .insert([{ name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq, status: 'PENDING' }]);
 
-      document.getElementById('adminSlipPreviewContainer').classList.remove('hidden');
-      document.getElementById('admSlipToken').innerText = "TK-" + String(tokenSeq).padStart(3, '0');
-      document.getElementById('admSlipDate').innerText = date;
-      document.getElementById('admSlipName').innerText = holderName;
-      document.getElementById('admSlipCard').innerText = cardNo;
-      document.getElementById('admSlipFather').innerText = fatherName || (matchedInfo ? matchedInfo.details.fatherHusbandName : 'N/A');
-      document.getElementById('admSlipUnits').innerText = units || (matchedInfo ? matchedInfo.details.units : 'N/A');
+        if (insertErr) throw insertErr;
 
-      alert('टोकन सफलतापूर्वक बुक हो गया है!');
-      loadAllData();
-    }
+        await supabaseClient.from('slots').update({ booked_count: tokenSeq }).eq('date', date);
+        await supabaseClient.from('cards').upsert([{ card_number: cardNo, holder_name: holderName }], { onConflict: 'card_number' });
 
-    function downloadAdminSlip() {
-      html2canvas(document.getElementById('adminMainSlipCard'), { scale: 2 }).then(canvas => {
-        var link = document.createElement('a');
-        link.download = 'Ration_Token_Slip.jpg';
-        link.href = canvas.toDataURL("image/jpeg", 0.95);
-        link.click();
-      });
-    }
+        alert('Admin dwara token safaltapoorvak book kar diya gaya hai!');
+        
+        // Check if card is red card to determine slip theme
+        var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
+        var isRedCard = cardInfo ? (cardInfo.cardType === 'RED') : false;
 
-    async function toggleStatus(id, status) {
-      await supabaseClient.from('bookings').update({ status: status }).eq('id', id);
-      loadAllData();
-    }
+        // Automatically show slip
+        var newBookingObj = { name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq };
+        showAdminSlip(newBookingObj, isRedCard);
 
-    async function deleteBooking(id) {
-      if (confirm('क्या आप वाकई इसे हटाना चाहते हैं?')) {
-        await supabaseClient.from('bookings').delete().eq('id', id);
+        document.getElementById('adminCardNo').value = '';
+        document.getElementById('adminHolderName').value = '';
+        document.getElementById('adminPhone').value = '';
         loadAllData();
+
+      } catch (err) {
+        alert('Booking karne mein samasya aayi: ' + (err.message || err));
+      }
+    }
+
+    async function quickUpdateCard(bookingId) {
+      var newCardNo = document.getElementById('up-card-' + bookingId).value.trim().toUpperCase();
+      if (!newCardNo || newCardNo.length !== 12) {
+        alert('Kripya pura 12 anko ka vaid ration card number darj karein!');
+        return;
+      }
+      try {
+        await supabaseClient.from('bookings').update({ card: newCardNo }).eq('id', bookingId);
+        await supabaseClient.from('cards').upsert([{ card_number: newCardNo }], { onConflict: 'card_number' });
+        alert('Card number safaltapoorvak update ho gaya!');
+        loadAllData();
+      } catch (err) {
+        alert('Truti: ' + (err.message || err));
+      }
+    }
+
+    async function toggleStatus(bookingId, newStatus) {
+      try {
+        await supabaseClient.from('bookings').update({ status: newStatus }).eq('id', bookingId);
+        loadBookings();
+      } catch (err) {
+        alert('Update failed: ' + (err.message || err));
+      }
+    }
+
+    async function deleteBooking(bookingId) {
+      if (!confirm('Kya aap vakai is booking ko hatana chahte hain?')) return;
+      try {
+        await supabaseClient.from('bookings').delete().eq('id', bookingId);
+        loadAllData();
+      } catch (err) {
+        alert('Truti: ' + (err.message || err));
+      }
+    }
+
+    async function deleteSlot(dateCode) {
+      if (!confirm('Kya aap vakai tarikh ' + dateCode + ' ko hatana chahte hain?')) return;
+      try {
+        await supabaseClient.from('slots').delete().eq('date', dateCode);
+        loadAllData();
+      } catch (err) {
+        alert('Truti: ' + (err.message || err));
       }
     }
 
     async function addNewSlot(e) {
       e.preventDefault();
-      var dateVal = document.getElementById('slotDate').value;
-      var label = document.getElementById('slotLabel.value') || document.getElementById('slotLabel').value;
+      var date = document.getElementById('slotDate').value;
+      var label = document.getElementById('slotLabel').value;
       var limit = parseInt(document.getElementById('slotLimit').value);
-      await supabaseClient.from('slots').insert([{ date: dateVal, label: label, limit_count: limit, booked_count: 0 }]);
-      alert('स्लॉट जुड़ गया!');
-      loadAllData();
+
+      try {
+        await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
+        alert('Naya slot publish ho gaya!');
+        loadAllData();
+      } catch (err) {
+        alert('Truti: ' + (err.message || err));
+      }
     }
   </script>
 </body>
