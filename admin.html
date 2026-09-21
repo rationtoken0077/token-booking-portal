@@ -110,7 +110,7 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
           <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
             <i data-lucide="user-plus" class="text-emerald-600 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Admin Direct Booking (Prefix/Suffix Match & Manual Entry)</h2>
+            <h2 class="font-bold text-sm text-slate-800">Admin Direct Booking & Database Management</h2>
           </div>
 
           <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -121,8 +121,8 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
-              <input type="text" id="adminCardNo" placeholder="21XXXXXX2054" required maxlength="12" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase font-mono" oninput="handleAdminCardInput(this)">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (Full or Match)</label>
+              <input type="text" id="adminCardNo" placeholder="21XXXXXX2054" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase font-mono" oninput="handleAdminCardInput(this)">
             </div>
             <div class="sm:col-span-2">
               <div id="cardStatusAlert" class="text-[11px] font-bold px-3 py-1.5 rounded-lg hidden"></div>
@@ -135,9 +135,20 @@
               <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
               <input type="tel" id="adminPhone" placeholder="Mobile Number (Optional)" maxlength="10" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <div class="sm:col-span-2">
-              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Father/Husband Name</label>
+              <input type="text" id="adminFatherName" placeholder="Father/Husband Name" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none uppercase font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Units</label>
+              <input type="text" id="adminUnits" placeholder="Units Count" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none font-semibold">
+            </div>
+            <div class="sm:col-span-2 flex gap-2">
+              <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
                 Book Token & Generate Exact Main Slip
+              </button>
+              <button type="button" onclick="updateSupabaseRecordFromInputs()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
+                Update DB Record
               </button>
             </div>
           </form>
@@ -169,6 +180,14 @@
                 <div class="flex justify-between px-1">
                   <span class="text-slate-500">Ration Card No:</span>
                   <span id="admSlipCard" class="font-bold font-mono text-slate-800"></span>
+                </div>
+                <div class="flex justify-between px-1">
+                  <span class="text-slate-500">Father/Husband:</span>
+                  <span id="admSlipFather" class="font-bold text-slate-800 uppercase"></span>
+                </div>
+                <div class="flex justify-between px-1">
+                  <span class="text-slate-500">Units:</span>
+                  <span id="admSlipUnits" class="font-bold text-slate-800"></span>
                 </div>
                 <div class="flex justify-between px-1">
                   <span class="text-slate-500">Timing Slot:</span>
@@ -217,7 +236,7 @@
                 <th class="p-3.5">Card Holder Name</th>
                 <th class="p-3.5">Phone</th>
                 <th class="p-3.5">Card No.</th>
-                <th class="p-3.5">Family Details</th>
+                <th class="p-3.5">Family Details (Father / Units)</th>
                 <th class="p-3.5 text-center">Action</th>
               </tr>
             </thead>
@@ -277,7 +296,6 @@
       await loadBookings();
     }
 
-    // Supabase से आपके सभी चारों टेबल्स (`red_card`, `white_card`, `duplicate`, `cards`) का डेटा लोड करना
     async function fetchSupabaseCards() {
       supabaseCardsCache = {};
       const tablesInfo = [
@@ -301,6 +319,8 @@
 
               if (cNum) {
                 supabaseCardsCache[cNum] = {
+                  tableName: t.name,
+                  recordId: card.id,
                   holderName: card.holder_name || card.name || 'N/A',
                   fatherHusbandName: card.father_husband_name || card.father_name || 'N/A',
                   motherName: card.mother_name || 'N/A',
@@ -316,13 +336,16 @@
       }
     }
 
-    // शुरू के 2 और अंत के 4 अंकों से कार्ड मैच कराने का लॉजिक (Prefix & Suffix Match)
     function findCardInCache(inputCardNum) {
       var cleanInput = String(inputCardNum).trim().toUpperCase();
-      if (cleanInput.length < 6) return null;
+      if (cleanInput.length < 4) return null;
 
-      var inPrefix = cleanInput.substring(0, 2); // जैसे '21'
-      var inSuffix = cleanInput.slice(-4);       // जैसे '2054'
+      if (supabaseCardsCache[cleanInput]) {
+        return { fullCardNumber: cleanInput, details: supabaseCardsCache[cleanInput] };
+      }
+
+      var inPrefix = cleanInput.substring(0, 2); 
+      var inSuffix = cleanInput.slice(-4);        
 
       for (var dbCardNum in supabaseCardsCache) {
         var cleanDb = String(dbCardNum).trim().toUpperCase();
@@ -341,25 +364,65 @@
       return null;
     }
 
-    // जब एडमिन कार्ड नंबर डालेगा तो यह चेक करेगा
     function handleAdminCardInput(input) {
       var val = input.value.trim().toUpperCase();
       var alertBox = document.getElementById('cardStatusAlert');
       var nameInput = document.getElementById('adminHolderName');
+      var fatherInput = document.getElementById('adminFatherName');
+      var unitsInput = document.getElementById('adminUnits');
 
-      if (val.length >= 6) {
+      if (val.length >= 4) {
         let matched = findCardInCache(val);
         if (matched) {
           nameInput.value = matched.details.holderName;
+          fatherInput.value = matched.details.fatherHusbandName;
+          unitsInput.value = matched.details.units;
           alertBox.className = "text-[11px] font-bold px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 block";
-          alertBox.innerText = "✓ मिल गया: " + matched.details.holderName + " (डाटाबेस से मैच हो गया)";
+          alertBox.innerText = "✓ मिल गया: " + matched.details.holderName + " (डेटाबेस से मैच हो गया)";
         } else {
           nameInput.value = "";
+          fatherInput.value = "";
+          unitsInput.value = "";
           alertBox.className = "text-[11px] font-bold px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 block";
-          alertBox.innerText = "⚠ यह डेटाबेस में नहीं है। आप मैन्युअल रूप से नाम दर्ज कर सकते हैं।";
+          alertBox.innerText = "⚠ यह डेटाबेस में नहीं है। आप मैन्युअल रूप से विवरण दर्ज कर सकते हैं या नया जोड़ सकते हैं।";
         }
       } else {
         alertBox.className = "hidden";
+      }
+    }
+
+    async function updateSupabaseRecordFromInputs() {
+      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
+      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
+      var fatherName = document.getElementById('adminFatherName').value.trim().toUpperCase();
+      var units = document.getElementById('adminUnits').value.trim();
+
+      if (!cardNo) {
+        alert('कृपया पहले राशन कार्ड नंबर दर्ज करें!');
+        return;
+      }
+
+      let matched = findCardInCache(cardNo);
+      if (!matched) {
+        alert('यह कार्ड डेटाबेस में नहीं मिला जिसे अपडेट किया जा सके।');
+        return;
+      }
+
+      var tableName = matched.details.tableName;
+      var recordId = matched.details.recordId;
+
+      var updateObj = {
+        holder_name: holderName,
+        father_husband_name: fatherName,
+        units: units
+      };
+
+      const { error } = await supabaseClient.from(tableName).update(updateObj).eq('id', recordId);
+      if (error) {
+        alert('सुपाबेस अपडेट करने में त्रुटि: ' + error.message);
+      } else {
+        alert('सुपाबेस डेटाबेस सफलतापूर्वक अपडेट हो गया है!');
+        await fetchSupabaseCards();
       }
     }
 
@@ -406,7 +469,7 @@
         var isDone = (b.status === 'COMPLETED');
         var cardNo = String(b.card || '').trim();
         let matchedInfo = findCardInCache(cardNo);
-        var cardDetails = matchedInfo ? matchedInfo.details : { fatherHusbandName: 'मैन्युअल एंट्री', motherName: 'N/A', units: 'N/A' };
+        var cardDetails = matchedInfo ? matchedInfo.details : { fatherHusbandName: 'मैन्युअल एंट्री', units: 'N/A' };
 
         var tr = document.createElement('tr');
         tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
@@ -417,11 +480,12 @@
           <td class="p-3.5 font-bold text-blue-700">${b.name}</td>
           <td class="p-3.5">${b.phone || 'N/A'}</td>
           <td class="p-3.5 font-mono font-bold">${cardNo}</td>
-          <td class="p-3.5 text-slate-600 text-[11px]">${cardDetails.fatherHusbandName}</td>
+          <td class="p-3.5 text-slate-600 text-[11px]"><b>पिता/पति:</b> ${cardDetails.fatherHusbandName}<br><b>यूनिट:</b> ${cardDetails.units}</td>
           <td class="p-3.5 text-center flex items-center justify-center gap-1">
             <button onclick="toggleStatus(${b.id}, '${isDone ? 'PENDING' : 'COMPLETED'})" class="bg-${isDone ? 'slate' : 'emerald'}-600 text-white px-2 py-1 rounded text-[11px]">${isDone ? 'Undo' : 'Done'}</button>
             <button onclick="deleteBooking(${b.id})" class="bg-red-100 text-red-700 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          `;
+          </td>
+        `;
         tbody.appendChild(tr);
       });
       lucide.createIcons();
@@ -433,6 +497,8 @@
       var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
       var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
       var phone = document.getElementById('adminPhone').value.trim();
+      var fatherName = document.getElementById('adminFatherName').value.trim().toUpperCase();
+      var units = document.getElementById('adminUnits').value.trim();
 
       const { data: existing } = await supabaseClient.from('bookings').select('*').eq('token_date', date).eq('card', cardNo);
       if (existing && existing.length > 0) {
@@ -467,6 +533,8 @@
       document.getElementById('admSlipDate').innerText = date;
       document.getElementById('admSlipName').innerText = holderName;
       document.getElementById('admSlipCard').innerText = cardNo;
+      document.getElementById('admSlipFather').innerText = fatherName || (matchedInfo ? matchedInfo.details.fatherHusbandName : 'N/A');
+      document.getElementById('admSlipUnits').innerText = units || (matchedInfo ? matchedInfo.details.units : 'N/A');
 
       alert('टोकन सफलतापूर्वक बुक हो गया है!');
       loadAllData();
@@ -496,7 +564,7 @@
     async function addNewSlot(e) {
       e.preventDefault();
       var dateVal = document.getElementById('slotDate').value;
-      var label = document.getElementById('slotLabel').value;
+      var label = document.getElementById('slotLabel.value') || document.getElementById('slotLabel').value;
       var limit = parseInt(document.getElementById('slotLimit').value);
       await supabaseClient.from('slots').insert([{ date: dateVal, label: label, limit_count: limit, booked_count: 0 }]);
       alert('स्लॉट जुड़ गया!');
