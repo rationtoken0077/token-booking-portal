@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Token Distribution Portal - Admin Console</title>
+  <title>FPS Token Distribution Portal - Kapil Dev Yadav (Gujarpar)</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,580 +11,327 @@
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body { font-family: 'Plus Jakarta Sans', 'Hind', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .done-row { background-color: #f0fdf4 !important; }
-    .done-text { text-decoration: line-through; color: #166534 !important; }
-    summary::-webkit-details-marker { display:none; }
+    .printable-slip { 
+      background: #ffffff; 
+      color: #0f172a; 
+      border: 2px dashed #0f172a; 
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .printable-slip.red-card-theme {
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important;
+      border: 2px dashed #b91c1c !important;
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900 pb-12">
 
-  <!-- Password Protection Overlay -->
-  <div id="authOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-      <div class="text-center space-y-1">
-        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold">
-          <i data-lucide="lock" class="w-6 h-6"></i>
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-blue-600 rounded-xl text-white">
+          <i data-lucide="ticket" class="w-5 h-5"></i>
         </div>
-        <h2 class="font-black text-lg text-slate-900">Admin Authentication</h2>
-        <p class="text-xs text-slate-500">कृपया एडमिन पासवर्ड दर्ज करें</p>
+        <div>
+          <h1 class="font-extrabold text-sm sm:text-base tracking-tight leading-none">कोटा राशन टोकन पोर्टल</h1>
+          <p class="text-[11px] text-slate-400 mt-1">कोटेदार: कपिल देव यादव (गुजरपार)</p>
+        </div>
       </div>
-      <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
-        <input type="password" id="adminPasswordInput" placeholder="पासवर्ड दर्ज करें..." required class="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-sm transition shadow-md">
-          लॉगिन करें
+      <div>
+        <a href="admin.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+          Admin Login
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Booking Form Card -->
+    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="font-bold text-sm sm:text-base text-slate-900">राशन टोकन बुकिंग फॉर्म</h2>
+        <p class="text-xs text-slate-500">अपना 12 अंकों का राशन कार्ड नंबर दर्ज करें (बीच में X होने पर भी मान्य है)</p>
+      </div>
+
+      <form onsubmit="handleUserBooking(event)" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">वितरण दिनांक (Date Slot चुनें)</label>
+            <select id="userBookingDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">-- तारीख चुनें --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">राशन कार्ड नंबर (12 Digit)</label>
+            <input type="text" id="userCardNo" placeholder="21XXXXXX2054" required maxlength="12" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono" oninput="verifyUserCardInput(this)">
+          </div>
+        </div>
+
+        <div id="userCardAlert" class="text-xs font-bold px-3 py-2 rounded-xl hidden"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">कार्डधारक का नाम (नाम)</label>
+            <input type="text" id="userHolderName" placeholder="कार्ड नंबर डालते ही ऑटोमैटिक आ जाएगा" required readonly class="w-full bg-slate-100 border border-slate-300 p-2.5 rounded-xl text-xs outline-none font-semibold uppercase text-slate-700">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">मोबाइल नंबर (वैकल्पिक)</label>
+            <input type="tel" id="userPhone" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <button type="submit" id="bookSubmitBtn" disabled class="w-full bg-slate-300 text-slate-500 font-bold p-3 rounded-xl text-xs transition cursor-not-allowed">
+          टोकन बुक करें और पर्ची प्राप्त करें
         </button>
       </form>
     </div>
-  </div>
 
-  <!-- Main Content -->
-  <div id="adminMainContent" class="hidden">
-    <!-- Header -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <div class="p-2 bg-blue-600 rounded-xl text-white">
-            <i data-lucide="shield-check" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none">FPS Token Management System</h1>
-            <p class="text-xs text-slate-400 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-          </button>
-          <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-3 py-2 rounded-lg text-xs transition">
-            लॉग आउट
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-      <!-- Add New Slot & Manual Admin Booking Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Add Slot Form -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="calendar-plus" class="text-blue-600 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
-          </div>
-
-          <form onsubmit="addNewSlot(event)" class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
-              <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
-              <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
-              <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <button type="submit" id="addSlotBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition">
-              <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
-            </button>
-          </form>
-        </div>
-
-        <!-- Admin Direct Booking Form -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="user-plus" class="text-emerald-600 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking</h2>
-          </div>
-
-          <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
-              <select id="adminBookingDate" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-                <option value="">-- Select Date --</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
-              <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
-              <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 uppercase">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
-              <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-            </div>
-            <div class="sm:col-span-2 flex gap-2">
-              <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-xs transition">
-                Book Token Now
-              </button>
-            </div>
-          </form>
-        </div>
-
+    <!-- Success Slip Section -->
+    <div id="userSlipSection" class="hidden space-y-4">
+      <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold text-center">
+        ✓ आपका टोकन सफलतापूर्वक बुक हो गया है! नीचे दी गई पर्ची डाउनलोड कर लें।
       </div>
 
-      <!-- Active Slots & Seat Controls -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
-          </div>
-          <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
+      <div id="mainSlipCard" class="printable-slip rounded-2xl p-5 max-w-sm mx-auto space-y-3">
+        <div class="text-center border-b pb-3 border-slate-200">
+          <span id="slipBadge" class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">WHITE CARD</span>
+          <h2 class="text-base font-black text-slate-900 tracking-tight mt-1">FPS RATION TOKEN SLIP</h2>
+          <p class="text-[10px] text-slate-500 font-semibold">Kapil Dev Yadav (Gujarpar)</p>
         </div>
 
-        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
-          <p class="text-xs text-slate-400">Loading active slots...</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex justify-between bg-slate-100/80 p-2 rounded-lg">
+            <span class="text-slate-500 font-semibold">Token Number:</span>
+            <span id="slipTokenNum" class="font-black text-blue-600 text-sm"></span>
+          </div>
+          <div class="flex justify-between px-1">
+            <span class="text-slate-500">Distribution Date:</span>
+            <span id="slipDateText" class="font-bold text-slate-800"></span>
+          </div>
+          <div class="flex justify-between px-1">
+            <span class="text-slate-500">Card Holder:</span>
+            <span id="slipNameText" class="font-bold text-slate-800 uppercase"></span>
+          </div>
+          <div class="flex justify-between px-1">
+            <span class="text-slate-500">Ration Card No:</span>
+            <span id="slipCardText" class="font-bold font-mono text-slate-800"></span>
+          </div>
+          <div class="flex justify-between px-1">
+            <span class="text-slate-500">Timing Slot:</span>
+            <span class="font-bold text-emerald-700">06:30 AM - 08:00 AM</span>
+          </div>
+        </div>
+
+        <div class="text-center pt-2 border-t border-slate-200 text-[10px] text-slate-400 font-medium">
+          कृपया निर्धारित समय पर कोटे की दुकान पर पहुँचें।
         </div>
       </div>
 
-      <!-- Booking Table with Date Filter -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        
-        <!-- Filter Bar -->
-        <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-              <i data-lucide="users" class="text-blue-600 w-5 h-5"></i> Customer Booking Register & Details
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Details dropdown se father name, mother name, units dekhein aur card number update karein</p>
-          </div>
-
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label class="text-xs font-bold text-slate-600">Filter Date:</label>
-            <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="ALL">All Dates</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                <th class="p-3.5">Status</th>
-                <th class="p-3.5">Token ID</th>
-                <th class="p-3.5">Date</th>
-                <th class="p-3.5">Card Holder Name</th>
-                <th class="p-3.5">Booked By</th>
-                <th class="p-3.5">Phone</th>
-                <th class="p-3.5">Card No.</th>
-                <th class="p-3.5">Family Details / Update</th>
-                <th class="p-3.5 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
-              <tr>
-                <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="text-center">
+        <button onclick="downloadUserSlip()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-6 rounded-xl shadow transition">
+          पर्ची डाउनलोड करें (JPG)
+        </button>
       </div>
+    </div>
 
-    </main>
-  </div>
+  </main>
 
   <script>
-    const ADMIN_SECRET_PASSWORD = "kapil2026"; 
-
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    var allBookingsData = [];
-    var allSlotsData = [];
     var supabaseCardsCache = {};
+    var matchedCardDetails = null;
 
     window.onload = function() {
-      if (sessionStorage.getItem("adminAuth") === "true") {
-        unlockAdminPanel();
-      }
+      loadUserSlots();
+      fetchSupabaseCards();
       lucide.createIcons();
     };
 
-    function verifyAdminPassword(e) {
-      e.preventDefault();
-      var pass = document.getElementById('adminPasswordInput').value;
-      if (pass === ADMIN_SECRET_PASSWORD) {
-        sessionStorage.setItem("adminAuth", "true");
-        unlockAdminPanel();
-      } else {
-        alert('गलत पासवर्ड! कृपया सही पासवर्ड दर्ज करें।');
-        document.getElementById('adminPasswordInput').value = '';
-      }
-    }
-
-    function unlockAdminPanel() {
-      document.getElementById('authOverlay').style.display = 'none';
-      document.getElementById('adminMainContent').classList.remove('hidden');
-      loadAllData();
-    }
-
-    function logoutAdmin() {
-      sessionStorage.removeItem("adminAuth");
-      location.reload();
-    }
-
-    async function loadAllData() {
-      await fetchSupabaseCards();
-      await loadSlots();
-      await loadBookings();
-    }
-
+    // डेटाबेस से चारों टेबल्स (`red_card`, `white_card`, `duplicate`, `cards`) का डेटा लोड करना
     async function fetchSupabaseCards() {
-      try {
-        const { data, error } = await supabaseClient.from('cards').select('*');
-        if (!error && data) {
-          data.forEach(function(card) {
-            var cNum = String(card.card_number || card.ration_card_number || card.cardNo || '').trim();
-            if (cNum) {
-              // यहाँ सभी संभावित कॉलम नामों को चेक किया गया है ताकि डेटा मिस न हो
-              supabaseCardsCache[cNum] = {
-                holderName: card.holder_name || card.card_holder_name || card.name || card.holderName || 'N/A',
-                fatherHusbandName: card.father_husband_name || card.father_name || card.fatherName || card.fathers_name || card.husband_name || 'N/A',
-                motherName: card.mother_name || card.motherName || card.mothers_name || 'N/A',
-                units: card.units || card.total_units || card.totalUnits || 'N/A'
-              };
-            }
-          });
+      supabaseCardsCache = {};
+      const tablesInfo = [
+        { name: 'red_card', type: 'RED' },
+        { name: 'white_card', type: 'WHITE' },
+        { name: 'duplicate', type: 'DUPLICATE' },
+        { name: 'cards', type: 'WHITE' }
+      ];
+
+      for (let t of tablesInfo) {
+        try {
+          let { data } = await supabaseClient.from(t.name).select('*');
+          if (data && data.length > 0) {
+            data.forEach(function(card) {
+              var cNum = String(
+                card.card_number || 
+                card.ration_card_number || 
+                card.number || 
+                card.card || ''
+              ).trim().toUpperCase();
+
+              if (cNum) {
+                supabaseCardsCache[cNum] = {
+                  holderName: card.holder_name || card.name || 'N/A',
+                  fatherHusbandName: card.father_husband_name || card.father_name || 'N/A',
+                  motherName: card.mother_name || 'N/A',
+                  units: card.units || 'N/A',
+                  cardType: card.card_type || t.type
+                };
+              }
+            });
+          }
+        } catch (e) {
+          console.log("Error loading table: " + t.name, e);
         }
-      } catch (err) {
-        console.error("Error fetching cards:", err);
       }
     }
 
-    async function loadSlots() {
-      const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
-      if (error) { console.error(error); return; }
+    // शुरू के 2 और अंत के 4 अंकों से कार्ड मैच कराने वाला मुख्य लॉजिक (Prefix & Suffix Match)
+    function findCardInCache(inputCardNum) {
+      var cleanInput = String(inputCardNum).trim().toUpperCase();
+      if (cleanInput.length < 6) return null;
 
-      allSlotsData = data || [];
-      var slotsContainer = document.getElementById('slotsContainer');
-      var filterSelect = document.getElementById('dateFilter');
-      var adminBookingDate = document.getElementById('adminBookingDate');
-      var slotsCountText = document.getElementById('slotsCountText');
-      
-      slotsContainer.innerHTML = '';
-      var currentFilter = filterSelect.value;
-      filterSelect.innerHTML = '<option value="ALL">All Dates</option>';
-      adminBookingDate.innerHTML = '<option value="">-- Select Date --</option>';
-      slotsCountText.innerText = allSlotsData.length + " Slots Active";
+      var inPrefix = cleanInput.substring(0, 2); // जैसे '21'
+      var inSuffix = cleanInput.slice(-4);       // जैसे '2054'
 
-      if (allSlotsData.length === 0) {
-        slotsContainer.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No slots created yet.</p>';
-        return;
-      }
+      for (var dbCardNum in supabaseCardsCache) {
+        var cleanDb = String(dbCardNum).trim().toUpperCase();
+        if (cleanDb.length >= 6) {
+          var dbPrefix = cleanDb.substring(0, 2);
+          var dbSuffix = cleanDb.slice(-4);
 
-      allSlotsData.forEach(function(slot) {
-        var booked = slot.booked_count || 0;
-        var limit = slot.limit_count || 200;
-
-        var card = document.createElement('div');
-        card.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50 flex justify-between items-center hover:border-slate-300 transition';
-        card.innerHTML = 
-          '<div>' +
-            '<div class="font-bold text-slate-900 text-xs">' + (slot.label || slot.date) + '</div>' +
-            '<div class="text-[11px] text-slate-500 font-medium">Code: ' + slot.date + ' | <span class="text-blue-600 font-bold">' + booked + '/' + limit + ' Booked</span></div>' +
-          '</div>' +
-          '<button onclick="deleteSlot(\'' + slot.date + '\')" title="Delete Date Slot" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">' +
-            '<i data-lucide="trash-2" class="w-4 h-4"></i>' +
-          '</button>';
-        slotsContainer.appendChild(card);
-
-        var opt = document.createElement('option');
-        opt.value = slot.date;
-        opt.innerText = (slot.label || slot.date);
-        filterSelect.appendChild(opt);
-
-        var opt2 = opt.cloneNode(true);
-        adminBookingDate.appendChild(opt2);
-      });
-
-      filterSelect.value = currentFilter;
-      lucide.createIcons();
-    }
-
-    function getNameInitials(fullName) {
-      if (!fullName) return 'TK';
-      var parts = fullName.trim().split(/\s+/);
-      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      return parts[0][0].toUpperCase();
-    }
-
-    async function loadBookings() {
-      const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
-      
-      if (error || !data) {
-        allBookingsData = [];
-      } else {
-        allBookingsData = data;
-      }
-      filterBookingsByDate();
-    }
-
-    function filterBookingsByDate() {
-      var selectedDate = document.getElementById('dateFilter').value;
-      var tbody = document.getElementById('bookingsTableBody');
-      tbody.innerHTML = '';
-
-      var filtered = allBookingsData;
-      if (selectedDate !== 'ALL') {
-        filtered = allBookingsData.filter(function(b) { return b.token_date === selectedDate || b.date === selectedDate; });
-      }
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
-        return;
-      }
-
-      filtered.forEach(function(b) {
-        var isDone = (b.status === 'COMPLETED');
-        var initials = getNameInitials(b.name || b.userName);
-        var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
-        var fullToken = initials + '-' + formattedNum;
-
-        var cardNo = String(b.card || b.cardNo || b.ration_card_number || b.card_number || '').trim();
-        
-        // --- SMART CARD MATCHING (आगे के 2 अंक और लास्ट के 4 अंक का लॉजिक) ---
-        var cardInfo = supabaseCardsCache[cardNo];
-        
-        if (!cardInfo && cardNo.length >= 6) {
-          var first2 = cardNo.substring(0, 2);
-          var last4 = cardNo.slice(-4);
-          
-          for (var key in supabaseCardsCache) {
-            if (key.startsWith(first2) && key.endsWith(last4)) {
-              cardInfo = supabaseCardsCache[key];
-              break;
-            }
+          if (inPrefix === dbPrefix && inSuffix === dbSuffix) {
+            return {
+              fullCardNumber: cleanDb,
+              details: supabaseCardsCache[cleanDb]
+            };
           }
         }
+      }
+      return null;
+    }
 
-        if (!cardInfo) {
-          cardInfo = {
-            holderName: b.name || 'N/A',
-            fatherHusbandName: 'N/A',
-            motherName: 'N/A',
-            units: 'N/A'
-          };
+    // यूजर जब इनपुट में कार्ड नंबर डालेगा
+    function verifyUserCardInput(input) {
+      var val = input.value.trim().toUpperCase();
+      var alertBox = document.getElementById('userCardAlert');
+      var nameInput = document.getElementById('userHolderName');
+      var submitBtn = document.getElementById('bookSubmitBtn');
+
+      matchedCardDetails = null;
+
+      if (val.length >= 6) {
+        let matched = findCardInCache(val);
+        if (matched) {
+          matchedCardDetails = matched;
+          nameInput.value = matched.details.holderName;
+          alertBox.className = "text-xs font-bold px-3 py-2 rounded-xl bg-emerald-100 text-emerald-800 block";
+          alertBox.innerText = "✓ कार्ड मान्य है: " + matched.details.holderName;
+          
+          submitBtn.disabled = false;
+          submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl text-xs transition shadow-md cursor-pointer";
+        } else {
+          nameInput.value = "";
+          alertBox.className = "text-xs font-bold px-3 py-2 rounded-xl bg-red-100 text-red-800 block";
+          alertBox.innerText = "✖ यह राशन कार्ड डेटाबेस में नहीं मिला! कृपया सही नंबर (शुरू के 2 और अंत के 4 अंक) दर्ज करें।";
+          
+          submitBtn.disabled = true;
+          submitBtn.className = "w-full bg-slate-300 text-slate-500 font-bold p-3 rounded-xl text-xs transition cursor-not-allowed";
         }
+      } else {
+        nameInput.value = "";
+        alertBox.className = "hidden";
+        submitBtn.disabled = true;
+        submitBtn.className = "w-full bg-slate-300 text-slate-500 font-bold p-3 rounded-xl text-xs transition cursor-not-allowed";
+      }
+    }
 
-        var tr = document.createElement('tr');
-        tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
+    async function loadUserSlots() {
+      const { data } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+      var select = document.getElementById('userBookingDate');
+      select.innerHTML = '<option value="">-- तारीख चुनें --</option>';
+      if (data) {
+        data.forEach(function(slot) {
+          var opt = document.createElement('option');
+          opt.value = slot.date;
+          opt.innerText = (slot.label || slot.date);
+          select.appendChild(opt);
+        });
+      }
+    }
 
-        tr.innerHTML = 
-          '<td class="p-3.5">' +
-            (isDone 
-              ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md"><i data-lucide="check-circle" class="w-3 h-3"></i> Completed</span>' 
-              : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span>') +
-          '</td>' +
-          '<td class="p-3.5 font-bold text-slate-900">' + fullToken + '</td>' +
-          '<td class="p-3.5 text-slate-600 font-medium">' + (b.token_date || b.date || '-') + '</td>' +
-          '<td class="p-3.5 font-bold text-blue-700">' + cardInfo.holderName + '</td>' +
-          '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
-          '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
-          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
-          '<td class="p-3.5">' +
-            '<details class="cursor-pointer">' +
-              '<summary class="text-blue-600 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> View Details / Update</summary>' +
-              '<div class="mt-2 p-3 bg-slate-100 border border-slate-200 rounded-lg text-[11px] space-y-1.5 font-sans shadow-inner">' +
-                '<p><b>Holder Name:</b> ' + cardInfo.holderName + '</p>' +
-                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
-                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
-                '<p><b>Units:</b> <span class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
-                '<hr class="border-slate-300 my-1.5">' +
-                '<div class="space-y-1 pt-0.5">' +
-                  '<label class="block font-bold text-slate-700">असली 12 अंक कार्ड नंबर भरें:</label>' +
-                  '<input type="text" id="up-card-' + b.id + '" value="' + cardNo + '" maxlength="12" class="w-full p-1.5 border border-slate-300 rounded font-mono text-xs uppercase bg-white">' +
-                  '<button onclick="quickUpdateCard(' + b.id + ')" class="mt-1.5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs transition">Supabase में सेव करें</button>' +
-                '</div>' +
-              '</div>' +
-            '</details>' +
-          '</td>' +
-          '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
-            (isDone
-              ? '<button onclick="toggleStatus(' + (b.id || 0) + ', \'PENDING\')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2 py-1 rounded text-[11px] transition">Undo</button>'
-              : '<button onclick="toggleStatus(' + (b.id || 0) + ', \'COMPLETED\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded text-[11px] inline-flex items-center gap-1 transition shadow-sm"><i data-lucide="check" class="w-3 h-3"></i> Done</button>') +
-            '<button onclick="deleteBooking(' + (b.id || 0) + ')" class="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded text-[11px]" title="Delete Booking"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' +
-          '</td>';
+    async function handleUserBooking(e) {
+      e.preventDefault();
+      if (!matchedCardDetails) {
+        alert('कृपया वैध राशन कार्ड नंबर दर्ज करें!');
+        return;
+      }
 
-        tbody.appendChild(tr);
+      var date = document.getElementById('userBookingDate').value;
+      var cardNo = document.getElementById('userCardNo').value.trim().toUpperCase();
+      var holderName = document.getElementById('userHolderName').value.trim().toUpperCase();
+      var phone = document.getElementById('userPhone').value.trim();
+
+      // चेक करें कि इस तारीख पर पहले से बुकिंग तो नहीं है
+      const { data: existing } = await supabaseClient.from('bookings').select('*').eq('token_date', date).eq('card', cardNo);
+      if (existing && existing.length > 0) {
+        alert('त्रुटि: इस राशन कार्ड से इस तारीख पर पहले ही टोकन लिया जा चुका है!');
+        return;
+      }
+
+      const { count } = await supabaseClient.from('bookings').select('*', { count: 'exact', head: true }).eq('token_date', date);
+      var tokenSeq = (count || 0) + 1;
+
+      await supabaseClient.from('bookings').insert([{ 
+        name: holderName, 
+        phone: phone, 
+        card: cardNo, 
+        token_date: date, 
+        token_number: tokenSeq, 
+        status: 'PENDING' 
+      }]);
+
+      await supabaseClient.from('slots').update({ booked_count: tokenSeq }).eq('date', date);
+
+      // स्लिप दिखाना
+      var slipCard = document.getElementById('mainSlipCard');
+      var badge = document.getElementById('slipBadge');
+      var isRed = (cardNo.startsWith('RED') || matchedCardDetails.details.cardType === 'RED');
+
+      if (isRed) {
+        slipCard.className = "printable-slip red-card-theme rounded-2xl p-5 max-w-sm mx-auto space-y-3";
+        badge.className = "bg-red-100 text-red-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase";
+        badge.innerText = "RED CARD (अन्त्योदय)";
+      } else {
+        slipCard.className = "printable-slip rounded-2xl p-5 max-w-sm mx-auto space-y-3";
+        badge.className = "bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase";
+        badge.innerText = "WHITE CARD";
+      }
+
+      document.getElementById('userSlipSection').classList.remove('hidden');
+      document.getElementById('slipTokenNum').innerText = "TK-" + String(tokenSeq).padStart(3, '0');
+      document.getElementById('slipDateText').innerText = date;
+      document.getElementById('slipNameText').innerText = holderName;
+      document.getElementById('slipCardText').innerText = cardNo;
+
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function downloadUserSlip() {
+      html2canvas(document.getElementById('mainSlipCard'), { scale: 2 }).then(canvas => {
+        var link = document.createElement('a');
+        link.download = 'Ration_Token_Slip.jpg';
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.click();
       });
-
-      lucide.createIcons();
-    }
-
-    async function quickUpdateCard(bookingId) {
-      var newCardNo = document.getElementById('up-card-' + bookingId).value.trim().toUpperCase();
-
-      if (!newCardNo || newCardNo.length !== 12) {
-        alert('कृपया पूरा 12 अंकों का वैध राशन कार्ड नंबर दर्ज करें!');
-        return;
-      }
-
-      try {
-        const { error: bookingErr } = await supabaseClient
-          .from('bookings')
-          .update({ card: newCardNo })
-          .eq('id', bookingId);
-
-        if (bookingErr) throw bookingErr;
-
-        await supabaseClient
-          .from('cards')
-          .upsert([{ card_number: newCardNo }], { onConflict: 'card_number' });
-
-        alert('कार्ड नंबर सफलतापूर्वक Supabase में अपडेट हो गया है!');
-        loadAllData();
-      } catch (err) {
-        alert('अपडेट करने में त्रुटि: ' + (err.message || err));
-      }
-    }
-
-    async function toggleStatus(bookingId, newStatus) {
-      try {
-        await supabaseClient
-          .from('bookings')
-          .update({ status: newStatus })
-          .eq('id', bookingId);
-
-        var targetIndex = allBookingsData.findIndex(function(x) { return x.id === bookingId; });
-        if (targetIndex !== -1) {
-          allBookingsData[targetIndex].status = newStatus;
-        }
-        filterBookingsByDate();
-      } catch (err) {
-        alert('Update failed: ' + (err.message || err));
-      }
-    }
-
-    async function deleteBooking(bookingId) {
-      if (!confirm('क्या आप वाकई इस बुकिंग को हटाना (Delete) चाहते हैं?')) return;
-      try {
-        const { error } = await supabaseClient.from('bookings').delete().eq('id', bookingId);
-        if (error) throw error;
-        alert('बुकिंग सफलतापूर्वक हटा दी गई है!');
-        loadAllData();
-      } catch (err) {
-        alert('डिटेल हटाने में त्रुटि: ' + (err.message || err));
-      }
-    }
-
-    async function adminDirectBooking(e) {
-      e.preventDefault();
-      var date = document.getElementById('adminBookingDate').value;
-      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
-      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
-      var phone = document.getElementById('adminPhone').value.trim();
-
-      if (!date || !cardNo || !holderName) {
-        alert('कृपया सभी आवश्यक जानकारी भरें!');
-        return;
-      }
-
-      try {
-        const { count, error: countErr } = await supabaseClient
-          .from('bookings')
-          .select('*', { count: 'exact', head: true })
-          .eq('token_date', date);
-
-        if (countErr) throw countErr;
-
-        var tokenSeq = (count || 0) + 1;
-
-        const { error: insertErr } = await supabaseClient
-          .from('bookings')
-          .insert([
-            {
-              name: holderName,
-              phone: phone,
-              card: cardNo,
-              token_date: date,
-              token_number: tokenSeq,
-              status: 'PENDING'
-            }
-          ]);
-
-        if (insertErr) throw insertErr;
-
-        await supabaseClient
-          .from('slots')
-          .update({ booked_count: tokenSeq })
-          .eq('date', date);
-
-        await supabaseClient.from('cards').upsert([
-          { card_number: cardNo, holder_name: holderName }
-        ], { onConflict: 'card_number' });
-
-        alert('एडमिन द्वारा टोकन सफलतापूर्वक बुक कर दिया गया है!');
-        document.getElementById('adminCardNo').value = '';
-        document.getElementById('adminHolderName').value = '';
-        document.getElementById('adminPhone').value = '';
-        loadAllData();
-
-      } catch (err) {
-        alert('बुकिंग करने में समस्या आई: ' + (err.message || err));
-      }
-    }
-
-    async function deleteSlot(dateCode) {
-      if (!confirm('क्या आप वाकई तारीख ' + dateCode + ' को हटाना चाहते हैं?')) return;
-
-      try {
-        const { error } = await supabaseClient
-          .from('slots')
-          .delete()
-          .eq('date', dateCode);
-
-        if (error) throw error;
-
-        alert('तारीख का स्लॉट सफलतापूर्वक डिलीट हो गया!');
-        loadAllData();
-      } catch (err) {
-        alert('डिलीट करने में दिक्कत आई: ' + (err.message || err));
-      }
-    }
-
-    async function addNewSlot(e) {
-      e.preventDefault();
-      var date = document.getElementById('slotDate.value') || document.getElementById('slotDate').value;
-      var label = document.getElementById('slotLabel').value;
-      var limit = parseInt(document.getElementById('slotLimit').value);
-
-      var btn = document.getElementById('addSlotBtn');
-      btn.disabled = true;
-      btn.innerText = 'Publishing...';
-
-      try {
-        const { error } = await supabaseClient
-          .from('slots')
-          .insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
-
-        if (error) throw error;
-
-        alert('नया स्लॉट सफलतापूर्वक पब्लिश हो गया!');
-        document.getElementById('slotDate').value = '';
-        document.getElementById('slotLabel').value = '';
-        loadAllData();
-
-      } catch (err) {
-        alert('स्लॉट बनाने में त्रुटि: ' + (err.message || err));
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot';
-        lucide.createIcons();
-      }
     }
   </script>
 </body>
