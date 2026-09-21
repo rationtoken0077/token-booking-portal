@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Appointment Token Slip Portal</title>
   
-  <!-- Fonts: Poppins for Hindi & Outfit for English -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
@@ -35,27 +34,15 @@
     .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
     .btn-dark { background: #0f172a; color: #ffffff; }
     
-    /* Standard White Ticket */
     .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
-    
-    /* Professional Red Card Ticket Theme */
     .printable-slip.red-card-theme {
       background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important;
       border: 2px solid #b91c1c !important;
       box-shadow: 0 15px 30px -5px rgba(185, 28, 28, 0.2) !important;
     }
-    .printable-slip.red-card-theme .slip-header-title {
-      color: #991b1b !important;
-      border-bottom-color: #fca5a5 !important;
-    }
-    .printable-slip.red-card-theme .kotedar-card-box {
-      background: #fee2e2 !important;
-      border-color: #fca5a5 !important;
-    }
-    .printable-slip.red-card-theme .token-box-container {
-      background: #ffffff !important;
-      border-color: #dc2626 !important;
-    }
+    .printable-slip.red-card-theme .slip-header-title { color: #991b1b !important; border-bottom-color: #fca5a5 !important; }
+    .printable-slip.red-card-theme .kotedar-card-box { background: #fee2e2 !important; border-color: #fca5a5 !important; }
+    .printable-slip.red-card-theme .token-box-container { background: #ffffff !important; border-color: #dc2626 !important; }
 
     .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
     .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -81,26 +68,31 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- 1. Ration Card Number Input (Updated to allow Any 6 characters in middle) -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा राशन कार्ड नंबर (12 अंक)</label>
           <div class="relative">
             <i data-lucide="credit-card" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="userRation" required minlength="12" maxlength="12" placeholder="21XXXXXX1234" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="autoFetchCardName(this)">
+            <input type="text" id="userRation" required minlength="12" maxlength="12" placeholder="21XXXXXX1234" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="autoFetchCardData(this)">
           </div>
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
-        <!-- 2. Full Name Input -->
+        <!-- Duplicate Name Selector Dropdown -->
+        <div id="duplicateSelectorContainer" class="hidden space-y-1.5 p-3 bg-amber-50 border border-amber-300 rounded-xl">
+          <label class="block text-xs font-bold text-amber-900 hindi-text">इस नंबर पर एक से अधिक नाम मिले हैं, कृपया अपना नाम चुनें:</label>
+          <select id="duplicateSelectDropdown" class="custom-input w-full p-2.5 rounded-xl text-sm font-semibold" onchange="onDuplicateSelected(this)">
+            <option value="">-- नाम चुनें --</option>
+          </select>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
           <div class="relative">
             <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="userName" required disabled placeholder="पहले राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase" oninput="this.value = this.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '');">
+            <input type="text" id="userName" required disabled placeholder="पहले सही राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase bg-slate-100">
           </div>
         </div>
 
-        <!-- 3. Mobile Number Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
           <div class="relative">
@@ -171,7 +163,6 @@
   <script>
     lucide.createIcons();
 
-    // Supabase Credentials
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -179,83 +170,118 @@
     var RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
     var selectedDate = '';
     var isBookingInProgress = false;
-    var isCurrentCardRed = false;
+    var currentCardType = '';
+    var foundCardRecords = [];
 
-    // Updated Auto Fetch Function (Matches '21' + Any 6 Chars + Last 4)
-    async function autoFetchCardName(input) {
-      // Allow User to type X or numbers in the middle
+    async function autoFetchCardData(input) {
       input.value = input.value.toUpperCase().replace(/[^0-9X]/g, '').slice(0, 12);
       var cardNo = input.value;
       var nameInput = document.getElementById('userName');
       var statusBox = document.getElementById('cardStatusMsg');
+      var duplicateContainer = document.getElementById('duplicateSelectorContainer');
+      var duplicateDropdown = document.getElementById('duplicateSelectDropdown');
       
-      isCurrentCardRed = false;
+      currentCardType = '';
+      foundCardRecords = [];
+      duplicateContainer.classList.add('hidden');
+      duplicateDropdown.innerHTML = '<option value="">-- नाम चुनें --</option>';
 
       if (cardNo.length === 12) {
-        var first2 = cardNo.substring(0, 2);
-        var last4 = cardNo.substring(8, 12);
-
-        // Check if starting digits are 21
-        if (first2 !== '21') {
-          nameInput.value = "";
-          nameInput.disabled = true;
-          nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
-          statusBox.innerText = "• त्रुटि: कार्ड नंबर '21' से शुरू होना चाहिए!";
-          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
-          return;
-        }
-
-        statusBox.innerText = "कार्ड खोजा जा रहा है...";
+        statusBox.innerText = "कार्ड की जाँच की जा रही है...";
         statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-blue-600 block";
 
         try {
-          // Supabase से कार्ड सर्च करें - .like() का उपयोग करके (21% + Last 4 Digits)
-          const { data, error } = await supabaseClient
-            .from('cards')
+          // 1. red_cards टेबल में चेक करें
+          const { data: redData, error: redErr } = await supabaseClient
+            .from('red_cards')
             .select('*')
-            .like('card_number', '21%' + last4)
-            .limit(1)
-            .maybeSingle();
+            .eq('card_number', cardNo);
 
-          if (error) throw error;
-
-          if (data) {
-            nameInput.disabled = false;
-            var matchedName = data.holder_name || '';
-            nameInput.value = matchedName;
-
-            isCurrentCardRed = (data.card_type === 'red' || data.is_red === true || Number(data.units) <= 3);
-
-            statusBox.innerText = "✓ राशन कार्ड मिल गया - नाम: " + matchedName;
-            statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
+          if (!redErr && redData && redData.length > 0) {
+            foundCardRecords = redData;
           } else {
-            nameInput.disabled = false;
+            // 2. duplicates टेबल में चेक करें
+            const { data: dupData, error: dupErr } = await supabaseClient
+              .from('duplicates')
+              .select('*')
+              .eq('card_number', cardNo);
+
+            if (!dupErr && dupData && dupData.length > 0) {
+              foundCardRecords = dupData;
+            } else {
+              // 3. white_cards टेबल में चेक करें
+              const { data: whiteData, error: whiteErr } = await supabaseClient
+                .from('white_cards')
+                .select('*')
+                .eq('card_number', cardNo);
+
+              if (!whiteErr && whiteData && whiteData.length > 0) {
+                foundCardRecords = whiteData;
+              }
+            }
+          }
+
+          if (foundCardRecords.length > 0) {
+            if (foundCardRecords.length > 1) {
+              duplicateContainer.classList.remove('hidden');
+              nameInput.value = "";
+              nameInput.disabled = true;
+              nameInput.placeholder = "कृपया ऊपर सूची से नाम चुनें";
+
+              foundCardRecords.forEach(function(rec, index) {
+                var opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = rec.holder_name + ' (पिता/पति: ' + (rec.father_husband_name || 'लागू नहीं') + ')';
+                duplicateDropdown.appendChild(opt);
+              });
+
+              statusBox.innerText = "• इस नंबर पर " + foundCardRecords.length + " नाम मिले हैं। कृपया अपना नाम चुनें।";
+              statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-amber-600 block";
+            } else {
+              var record = foundCardRecords[0];
+              nameInput.disabled = false;
+              nameInput.value = record.holder_name || '';
+              currentCardType = record.card_type ? String(record.card_type).toUpperCase().trim() : '';
+
+              statusBox.innerText = "✓ वैध राशन कार्ड मिल गया - " + record.holder_name;
+              statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
+            }
+          } else {
             nameInput.value = "";
-            nameInput.placeholder = "अपना नाम दर्ज करें";
-            statusBox.innerText = "• यह कार्ड नंबर डेटाबेस में नहीं है (मैनुअल नाम दर्ज करें)";
-            statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-amber-600 block";
-            nameInput.focus();
+            nameInput.disabled = true;
+            nameInput.placeholder = "अवैध राशन कार्ड नंबर";
+            statusBox.innerText = "❌ त्रुटि: यह राशन कार्ड नंबर डेटाबेस में मौजूद नहीं है!";
+            statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
           }
         } catch (err) {
           console.error(err);
-          nameInput.disabled = false;
-          statusBox.innerText = "• कनेक्शन त्रुटि, कृपया नाम मैन्युअल रूप से दर्ज करें";
+          nameInput.value = "";
+          nameInput.disabled = true;
+          statusBox.innerText = "• कनेक्शन त्रुटि, कृपया पुनः प्रयास करें।";
           statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
         }
       } else {
         nameInput.value = "";
         nameInput.disabled = true;
-        nameInput.placeholder = "पहले राशन कार्ड नंबर दर्ज करें";
+        nameInput.placeholder = "पहले 12 अंकों का राशन कार्ड नंबर दर्ज करें";
         statusBox.className = "hidden";
       }
     }
 
-    window.addEventListener('beforeunload', function (e) {
-      if (isBookingInProgress) {
-        e.preventDefault();
-        e.returnValue = 'टोकन बुकिंग प्रक्रिया में है, क्या आप बाहर जाना चाहते हैं?';
+    function onDuplicateSelected(selectElem) {
+      var idx = selectElem.value;
+      var nameInput = document.getElementById('userName');
+      if (idx !== "" && foundCardRecords[idx]) {
+        var record = foundCardRecords[idx];
+        nameInput.disabled = false;
+        nameInput.value = record.holder_name || '';
+        currentCardType = record.card_type ? String(record.card_type).toUpperCase().trim() : '';
+      } else {
+        nameInput.value = "";
+        nameInput.disabled = true;
+        currentCardType = '';
       }
-    });
+    }
 
     window.onload = function() {
       var imgElem = document.getElementById('kotedarImg');
@@ -263,37 +289,10 @@
       loadSlotsData();
     };
 
-    function getDevanagariFirstLetterEnglish(word) {
-      if (!word) return 'T';
-      var char = word.charAt(0);
-      
-      var map = {
-        'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ऋ': 'R', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'A',
-        'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'ङ': 'N',
-        'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J', 'ञ': 'N',
-        'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'ण': 'N',
-        'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N',
-        'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M',
-        'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H',
-        'क्ष': 'K', 'त्र': 'T', 'ज्ञ': 'G', 'ॐ': 'O'
-      };
-
-      if (map[char]) return map[char];
-      if (/[a-zA-Z]/.test(char)) return char.toUpperCase();
-      return 'T';
-    }
-
     function getNameInitials(fullName) {
       if (!fullName) return 'TK';
-      var parts = fullName.trim().split(/\s+/);
-      
-      var firstPart = parts[0];
-      var secondPart = parts.length > 1 ? parts[parts.length - 1] : '';
-
-      var firstInitial = getDevanagariFirstLetterEnglish(firstPart);
-      var secondInitial = secondPart ? getDevanagariFirstLetterEnglish(secondPart) : '';
-
-      return (firstInitial + secondInitial).toUpperCase();
+      var firstChar = fullName.trim().charAt(0).toUpperCase();
+      return (firstChar + 'K');
     }
 
     async function loadSlotsData() {
@@ -370,12 +369,12 @@
         return;
       }
 
+      var ration = document.getElementById('userRation').value.trim();
       var name = document.getElementById('userName').value.trim();
       var phone = document.getElementById('userPhone').value.trim();
-      var ration = document.getElementById('userRation').value.trim();
 
-      if (!name) {
-        alert('कृपया नाम दर्ज करें!');
+      if (!name || document.getElementById('userName').disabled) {
+        alert('अमान्य या अपूर्ण राशन कार्ड! कृपया सही राशन कार्ड नंबर दर्ज करें।');
         return;
       }
 
@@ -445,14 +444,13 @@
 
       var slipCard = document.getElementById('slipCardElement');
       
-      if (isCurrentCardRed) {
+      if (currentCardType.includes('RED') || currentCardType.includes('लाल')) {
         slipCard.classList.add('red-card-theme');
       } else {
         slipCard.classList.remove('red-card-theme');
       }
 
       document.getElementById('slipTokenNo').innerText = res.tokenDisplay;
-      
       var last4 = res.rationNo ? res.rationNo.slice(-4) : "----";
       document.getElementById('slipRationLastDigits').innerText = last4;
 
