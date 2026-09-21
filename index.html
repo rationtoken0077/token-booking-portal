@@ -99,7 +99,7 @@
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
-        <!-- Multi-Match Dropdown Container (Duplicate / Multiple matching cards) -->
+        <!-- Multi-Match Dropdown Container (Clean names only) -->
         <div id="multiMatchContainer" class="hidden bg-amber-50 border border-amber-300 p-3 rounded-2xl space-y-1.5">
           <label class="block text-xs font-bold text-amber-900 hindi-text">इस नंबर पर एक से अधिक नाम मिले हैं, सही नाम चुनें:</label>
           <select id="multiMatchSelect" onchange="selectMatchedCard(this)" class="custom-input w-full p-2.5 rounded-xl text-xs font-bold bg-white outline-none">
@@ -188,25 +188,76 @@
   </div>
 
   <!-- Find Token Modal -->
-  <div id="findTokenModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 relative">
-      <button onclick="closeFindTokenModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700">
+  <div id="findTokenModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative my-auto">
+      <button onclick="closeFindTokenModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 z-10">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
-      <div class="text-center space-y-1">
-        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold">
-          <i data-lucide="search" class="w-6 h-6"></i>
+      <div id="searchMainContent" class="space-y-4">
+        <div class="text-center space-y-1">
+          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </div>
+          <h2 class="font-black text-lg text-slate-900 hindi-text">अपना टोकन खोजें</h2>
+          <p class="text-xs text-slate-500 hindi-text">अपना 12 अंकों का राशन कार्ड नंबर दर्ज करें</p>
         </div>
-        <h2 class="font-black text-lg text-slate-900 hindi-text">अपना टोकन खोजें</h2>
-        <p class="text-xs text-slate-500 hindi-text">अपना 12 अंकों का राशन कार्ड नंबर दर्ज करें</p>
+        <div class="space-y-3">
+          <input type="text" id="searchCardInput" placeholder="215678912345" maxlength="12" inputmode="numeric" class="custom-input w-full p-3 rounded-xl text-sm font-semibold uppercase font-mono" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);">
+          <button type="button" onclick="executeFindToken()" class="btn-dark w-full py-3 rounded-xl font-bold text-xs hindi-text transition shadow-md">
+            टोकन ढूंढें
+          </button>
+          <div id="searchResultBox" class="text-xs text-center font-bold mt-2"></div>
+        </div>
       </div>
-      <div class="space-y-3">
-        <input type="text" id="searchCardInput" placeholder="215678912345" maxlength="12" inputmode="numeric" class="custom-input w-full p-3 rounded-xl text-sm font-semibold uppercase font-mono" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);">
-        <button type="button" onclick="executeFindToken()" class="btn-dark w-full py-3 rounded-xl font-bold text-xs hindi-text transition shadow-md">
-          टोकन ढूंढें
-        </button>
-        <div id="searchResultBox" class="text-xs text-center font-bold mt-2"></div>
+
+      <!-- Result Slip Container inside Modal -->
+      <div id="searchResultSlipContainer" class="hidden space-y-4">
+        <div id="modalSlipCardElement" class="printable-slip rounded-3xl p-4 shadow-xl relative overflow-hidden scale-95 origin-top">
+          <h2 class="slip-header-title text-center text-lg font-black tracking-tight text-slate-900 mb-2 border-b-2 pb-1.5 border-slate-200">
+            Appointment Token Slip
+          </h2>
+
+          <div class="kotedar-card-box bg-slate-100 rounded-xl p-3 flex items-center gap-3 mb-3 border border-slate-300">
+            <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0" style="width: 60px; height: 60px;">
+              <img id="modalKotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
+            </div>
+            <div>
+              <div class="text-red-600 font-black text-xs sm:text-sm tracking-wide uppercase leading-tight">KOTEDAR - KAPIL DEV YADAV</div>
+              <div class="text-black font-extrabold text-[11px] tracking-widest mt-0.5">GUJARPAR</div>
+            </div>
+          </div>
+
+          <div class="token-box-container border-2 border-dashed border-slate-900 rounded-xl p-3 text-center my-2 bg-slate-50">
+            <p class="text-[10px] font-black tracking-widest uppercase text-slate-700 mb-0.5">TOKEN NUMBER</p>
+            <div class="text-2xl sm:text-3xl font-black tracking-wider text-black mb-0.5" id="modalSlipTokenNo">-</div>
+            <div class="text-xs font-black text-slate-900" id="modalSlipRationLastDigits">----</div>
+          </div>
+
+          <div class="text-xs space-y-2 mt-3 text-slate-900 font-semibold px-1">
+            <div class="text-center bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+              <span class="text-slate-700 font-bold block text-[10px] hindi-text">अनुमानित समय (Expected Time):</span>
+              <span class="text-slate-950 font-black text-sm block mt-0.5 hindi-text">06:30 AM से 08:00 AM तक</span>
+            </div>
+
+            <div class="pt-2 space-y-1.5 border-t border-slate-200 text-slate-900 text-[11px]">
+              <p class="flex justify-between"><strong>Appointment Date:</strong> <span id="modalSlipDate" class="font-bold text-black">-</span></p>
+              <p class="flex justify-between"><strong>Ration Card No:</strong> <span id="modalSlipRationNo" class="font-bold text-black">-</span></p>
+              <p class="flex justify-between"><strong>Name:</strong> <span id="modalSlipName" class="font-bold text-black">-</span></p>
+              <p class="flex justify-between"><strong>Mobile:</strong> <span id="modalSlipPhone" class="font-bold text-black">-</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="resetFindModalView()" class="w-1/2 py-2.5 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-xs font-bold text-slate-800 transition hindi-text">
+            दूसरा खोजें
+          </button>
+          <button onclick="downloadModalSlipAsJPG()" class="w-1/2 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-md transition">
+            <i data-lucide="image-down" class="w-3.5 h-3.5"></i> <span class="hindi-text">JPG डाउनलोड</span>
+          </button>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -225,7 +276,11 @@
 
     window.onload = function() {
       var imgElem = document.getElementById('kotedarImg');
-      imgElem.src = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      var modalImgElem = document.getElementById('modalKotedarImg');
+      var imgUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      imgElem.src = imgUrl;
+      modalImgElem.src = imgUrl;
+      
       loadSlotsData();
       loadAllCardsCache();
     };
@@ -317,7 +372,7 @@
             statusBox.innerText = "✓ राशन कार्ड मिल गया - नाम: " + matched.holderName;
             statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
           } else {
-            // Duplicate / Multiple match dropdown display
+            // Duplicate / Multiple match dropdown display (Clean names only without any card/cards text)
             nameInput.disabled = false;
             multiContainer.classList.remove('hidden');
             statusBox.innerText = "⚠ इस नंबर से मिलते-जुलते " + matchedList.length + " नाम मिले हैं, नीचे से चुनें:";
@@ -326,7 +381,7 @@
             matchedList.forEach(function(item, idx) {
               var opt = document.createElement('option');
               opt.value = idx;
-              opt.textContent = item.holderName + " (" + item.cardType + " Card)";
+              opt.textContent = item.holderName; // Sirf naam dikhega, koi card text nahi
               opt.dataset.name = item.holderName;
               opt.dataset.type = item.cardType;
               opt.dataset.fullCard = item.fullCardNumber;
@@ -351,7 +406,6 @@
       if (selectedOption && selectedOption.value !== "") {
         document.getElementById('userName').value = selectedOption.dataset.name;
         isCurrentCardRed = (selectedOption.dataset.type === 'RED');
-        // Agar full card number database mein alag ho toh use input mein set kar sakte hain, optional hai
         var statusBox = document.getElementById('cardStatusMsg');
         statusBox.innerText = "✓ चुना गया नाम: " + selectedOption.dataset.name;
         statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-emerald-600 block";
@@ -360,13 +414,21 @@
 
     function openFindTokenModal() {
       document.getElementById('findTokenModal').classList.remove('hidden');
+      resetFindModalView();
       lucide.createIcons();
     }
 
     function closeFindTokenModal() {
       document.getElementById('findTokenModal').classList.add('hidden');
+      resetFindModalView();
+    }
+
+    function resetFindModalView() {
+      document.getElementById('searchMainContent').classList.remove('hidden');
+      document.getElementById('searchResultSlipContainer').classList.add('hidden');
       document.getElementById('searchCardInput').value = '';
       document.getElementById('searchResultBox').innerHTML = '';
+      lucide.createIcons();
     }
 
     async function executeFindToken() {
@@ -395,14 +457,35 @@
         });
 
         if (found) {
+          // Check if this card is Red Card in cache
+          var matchedCardObj = globalCardsCache.find(function(c) {
+            return c.fullCardNumber === found.card || matches.some(m => m.fullCardNumber === c.fullCardNumber);
+          });
+          var isRed = matchedCardObj ? (matchedCardObj.cardType === 'RED') : false;
+
           var initials = getNameInitials(found.name);
           var tokenStr = initials + "-" + String(found.token_number).padStart(3, '0');
-          resBox.innerHTML = '<div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 space-y-1">' +
-            '<p class="font-bold">टोकन मिल गया!</p>' +
-            '<p>नाम: <b>' + found.name + '</b></p>' +
-            '<p>टोकन नंबर: <span class="bg-emerald-600 text-white px-2 py-0.5 rounded font-black">' + tokenStr + '</span></p>' +
-            '<p>तारीख: <b>' + (found.token_date || found.date) + '</b></p>' +
-          '</div>';
+          var last4 = found.card ? found.card.slice(-4) : "----";
+
+          // Populate Modal Slip
+          var modalSlipCard = document.getElementById('modalSlipCardElement');
+          if (isRed) {
+            modalSlipCard.classList.add('red-card-theme');
+          } else {
+            modalSlipCard.classList.remove('red-card-theme');
+          }
+
+          document.getElementById('modalSlipTokenNo').innerText = tokenStr;
+          document.getElementById('modalSlipRationLastDigits').innerText = last4;
+          document.getElementById('modalSlipDate').innerText = found.token_date || found.date;
+          document.getElementById('modalSlipRationNo').innerText = found.card;
+          document.getElementById('modalSlipName').innerText = found.name;
+          document.getElementById('modalSlipPhone').innerText = found.phone;
+
+          // Switch view to slip inside modal
+          document.getElementById('searchMainContent').classList.add('hidden');
+          document.getElementById('searchResultSlipContainer').classList.remove('hidden');
+          lucide.createIcons();
         } else {
           resBox.innerHTML = '<span class="text-amber-600">इस नंबर पर कोई सक्रिय बुकिंग नहीं मिली।</span>';
         }
@@ -637,6 +720,25 @@
     function downloadAsJPG() {
       var slipElement = document.getElementById('slipCardElement');
       var tokenNo = document.getElementById('slipTokenNo').innerText || 'Token';
+
+      html2canvas(slipElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      }).then(function(canvas) {
+        var image = canvas.toDataURL("image/jpeg", 0.95);
+        var link = document.createElement('a');
+        link.download = 'Token_' + tokenNo + '.jpg';
+        link.href = image;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    function downloadModalSlipAsJPG() {
+      var slipElement = document.getElementById('modalSlipCardElement');
+      var tokenNo = document.getElementById('modalSlipTokenNo').innerText || 'Token';
 
       html2canvas(slipElement, {
         scale: 2,
