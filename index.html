@@ -34,10 +34,8 @@
     .date-box.full { background: #fef2f2; border-color: #ef4444; cursor: not-allowed; opacity: 0.75; }
     .btn-dark { background: #0f172a; color: #ffffff; }
     
-    /* Standard White Ticket */
     .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
     
-    /* Professional Red Card Ticket Theme */
     .printable-slip.red-card-theme {
       background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
       border: 3px solid #dc2626 !important;
@@ -72,7 +70,6 @@
     <!-- Booking Form Screen -->
     <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-7 space-y-5">
       
-      <!-- Find My Token Button Bar -->
       <div class="flex justify-between items-center bg-slate-100 p-3 rounded-2xl border border-slate-200">
         <span class="text-xs font-bold text-slate-700 hindi-text">पुराना टोकन देखना है?</span>
         <button type="button" onclick="openFindTokenModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition hindi-text shadow-sm flex items-center gap-1.5">
@@ -89,7 +86,6 @@
 
       <form id="tokenForm" onsubmit="handleBooking(event)" class="space-y-4">
         
-        <!-- 1. Ration Card Number Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">राशन कार्ड नंबर (पूरे 12 अंक)</label>
           <div class="relative">
@@ -99,7 +95,6 @@
           <div id="cardStatusMsg" class="hidden text-[11px] font-bold mt-1 px-1 hindi-text"></div>
         </div>
 
-        <!-- Multi-Match Dropdown Container -->
         <div id="multiMatchContainer" class="hidden bg-slate-50 border border-slate-300 p-3 rounded-2xl space-y-1.5">
           <label class="block text-xs font-bold text-slate-900 hindi-text">कृपया कार्ड धारक का नाम चुनें</label>
           <select id="multiMatchSelect" onchange="selectMatchedCard(this)" class="custom-input w-full p-2.5 rounded-xl text-xs font-bold bg-white outline-none">
@@ -107,16 +102,14 @@
           </select>
         </div>
 
-        <!-- 2. Full Name Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">पूरा नाम (Full Name)</label>
           <div class="relative">
             <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-            <input type="text" id="userName" required disabled placeholder="पहले राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase">
+            <input type="text" id="userName" required disabled placeholder="पहले सही राशन कार्ड नंबर दर्ज करें" class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-semibold uppercase">
           </div>
         </div>
 
-        <!-- 3. Mobile Number Input -->
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 hindi-text">मोबाइल नंबर (10 अंक)</label>
           <div class="relative">
@@ -207,7 +200,6 @@
             टोकन ढूंढें
           </button>
           
-          <!-- Modal Multi-Match Selection Container -->
           <div id="modalMultiMatchContainer" class="hidden bg-slate-50 border border-slate-300 p-3 rounded-2xl space-y-1.5 text-left">
             <label class="block text-xs font-bold text-slate-900 hindi-text">इस कार्ड पर एक से अधिक टोकन हैं, नाम चुनें:</label>
             <select id="modalMultiMatchSelect" onchange="selectModalMatchedBooking(this)" class="custom-input w-full p-2.5 rounded-xl text-xs font-bold bg-white outline-none">
@@ -219,7 +211,6 @@
         </div>
       </div>
 
-      <!-- Result Slip Container inside Modal -->
       <div id="searchResultSlipContainer" class="hidden space-y-4">
         <div id="modalSlipCardElement" class="printable-slip rounded-3xl p-4 shadow-xl relative overflow-hidden scale-95 origin-top">
           <h2 class="slip-header-title text-center text-lg font-black tracking-tight text-slate-900 mb-2 border-b-2 pb-1.5 border-slate-200">
@@ -245,7 +236,7 @@
           <div class="text-xs space-y-2 mt-3 text-slate-900 font-semibold px-1">
             <div class="text-center bg-amber-50 p-2.5 rounded-xl border border-amber-200">
               <span class="text-slate-700 font-bold block text-[10px] hindi-text">अनुमानित समय (Expected Time):</span>
-              <span class="text-slate-950 font-black text-sm block mt-0.5 hindi-text">06:30 AM से 08:00 AM तक</span>
+              <span class="text-slate-950 font-black text-sm block mt-0.5 hindi-text" id="modalSlipTimeSlot">06:30 AM से 08:00 AM तक</span>
             </div>
 
             <div class="pt-2 space-y-1.5 border-t border-slate-200 text-slate-900 text-[11px]">
@@ -282,7 +273,7 @@
     var isBookingInProgress = false;
     var isCurrentCardRed = false;
     var globalCardsCache = [];
-    var foundBookingsCache = []; // खोजे गए एकाधिक बुकिंग्स को होल्ड करने के लिए
+    var foundBookingsCache = [];
 
     window.onload = function() {
       var imgElem = document.getElementById('kotedarImg');
@@ -346,6 +337,26 @@
       return matches;
     }
 
+    // Dynamic Time Slot Function (Har 50 token par 1.5 ghante ka gap)
+    function calculateTimeSlot(tokenNum) {
+      var startMinutes = 390; // 06:30 AM in minutes (6 * 60 + 30)
+      var blockIndex = Math.floor((tokenNum - 1) / 50);
+      var slotStartMins = startMinutes + (blockIndex * 90); // 90 mins = 1.5 hours
+      var slotEndMins = slotStartMins + 90;
+
+      function formatTime(mins) {
+        var h = Math.floor(mins / 60);
+        var m = mins % 60;
+        var period = h >= 12 ? 'PM' : 'AM';
+        var displayH = h % 12;
+        if (displayH === 0) displayH = 12;
+        var displayM = m < 10 ? '0' + m : m;
+        return displayH + ':' + displayM + ' ' + period;
+      }
+
+      return formatTime(slotStartMins) + ' से ' + formatTime(slotEndMins) + ' तक';
+    }
+
     async function autoFetchCardName(input) {
       input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
       var cardNo = input.value;
@@ -356,6 +367,7 @@
       
       isCurrentCardRed = false;
       nameInput.value = '';
+      nameInput.disabled = true;
       multiContainer.classList.add('hidden');
       multiSelect.innerHTML = '<option value="">-- नाम चुनें --</option>';
 
@@ -363,7 +375,7 @@
         var first2 = cardNo.substring(0, 2);
         if (first2 !== '21') {
           nameInput.disabled = true;
-          statusBox.innerText = "• त्रुटि: कार्ड नंबर '21' से शुरू होना चाहिए!";
+          statusBox.innerText = "कृपया सही नंबर डालें। नंबर की जांच करें।";
           statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
           return;
         }
@@ -399,10 +411,10 @@
             });
           }
         } else {
-          nameInput.disabled = false;
-          statusBox.innerText = "• डेटाबेस में सीधा मैच नहीं मिला, कृपया नाम मैन्युअल रूप से दर्ज करें";
-          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-slate-600 block";
-          nameInput.focus();
+          // Strictly block invalid/custom card numbers that are not in DB
+          nameInput.disabled = true;
+          statusBox.innerText = "कृपया सही नंबर डालें। नंबर की जांच करें।";
+          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
         }
       } else {
         nameInput.value = "";
@@ -420,6 +432,134 @@
         statusBox.innerText = "✓ चुना गया नाम: " + selectedOption.dataset.name + (isCurrentCardRed ? " [लाल कार्ड]" : " [सफेद कार्ड]");
         statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text " + (isCurrentCardRed ? "text-red-600" : "text-emerald-600") + " block";
       }
+    }
+
+    function selectDate(element, dateStr) {
+      document.querySelectorAll('.date-box').forEach(function(el) {
+        el.classList.remove('selected');
+      });
+      element.classList.add('selected');
+      selectedDate = dateStr;
+    }
+
+    async function handleBooking(event) {
+      event.preventDefault();
+      if (!selectedDate) {
+        alert('कृपया पहले बुकिंग की तारीख चुनें!');
+        return;
+      }
+      if (isBookingInProgress) return;
+
+      var rationNo = document.getElementById('userRation').value.trim();
+      var userName = document.getElementById('userName').value.trim().toUpperCase();
+      var userPhone = document.getElementById('userPhone').value.trim();
+
+      if (rationNo.length !== 12 || document.getElementById('userName').disabled) {
+        alert('कृपया सही और मान्य राशन कार्ड नंबर दर्ज करें।');
+        return;
+      }
+
+      isBookingInProgress = true;
+      var submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'बुकिंग हो रही है...';
+
+      try {
+        const { data: existingBookings, error: checkErr } = await supabaseClient
+          .from('bookings')
+          .select('*')
+          .eq('card', rationNo)
+          .eq('name', userName);
+
+        if (checkErr) throw checkErr;
+
+        if (existingBookings && existingBookings.length > 0) {
+          alert('इस नाम और राशन कार्ड पर पहले ही टोकन बुक किया जा चुका है!');
+          isBookingInProgress = false;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span class="hindi-text">टोकन बुक करें</span>';
+          lucide.createIcons();
+          return;
+        }
+
+        const { data: slotData, error: slotErr } = await supabaseClient
+          .from('slots')
+          .select('*')
+          .eq('date', selectedDate)
+          .single();
+
+        if (slotErr || !slotData) throw new Error('चुनी गई तारीख का स्लॉट डेटा नहीं मिला!');
+
+        var currentBooked = slotData.booked_count || 0;
+        var limitCount = slotData.limit_count || 200;
+
+        if (currentBooked >= limitCount) {
+          alert('क्षमा करें, इस तारीख के सभी टोकन फुल हो चुके हैं!');
+          location.reload();
+          return;
+        }
+
+        var newTokenNumber = currentBooked + 1;
+
+        const { error: insertErr } = await supabaseClient
+          .from('bookings')
+          .insert([
+            {
+              card: rationNo,
+              name: userName,
+              phone: userPhone,
+              token_number: newTokenNumber,
+              token_date: selectedDate,
+              date: selectedDate
+            }
+          ]);
+
+        if (insertErr) throw insertErr;
+
+        const { error: updateErr } = await supabaseClient
+          .from('slots')
+          .update({ booked_count: newTokenNumber })
+          .eq('date', selectedDate);
+
+        if (updateErr) throw updateErr;
+
+        showSlipScreen(rationNo, userName, userPhone, newTokenNumber, selectedDate, isCurrentCardRed);
+
+      } catch (err) {
+        alert('बुकिंग में त्रुटि: ' + err.message);
+        isBookingInProgress = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i><span class="hindi-text">टोकन बुक करें</span>';
+        lucide.createIcons();
+      }
+    }
+
+    function showSlipScreen(ration, name, phone, tokenNum, dateStr, isRed) {
+      document.getElementById('bookingScreen').classList.add('hidden');
+      document.getElementById('ticketScreen').classList.remove('hidden');
+
+      var slipCard = document.getElementById('slipCardElement');
+      if (isRed) {
+        slipCard.classList.add('red-card-theme');
+      } else {
+        slipCard.classList.remove('red-card-theme');
+      }
+
+      var initials = getNameInitials(name);
+      var tokenFormatted = initials + "-" + String(tokenNum).padStart(3, '0');
+      var last4Digits = ration.slice(-4);
+      var timeSlotText = calculateTimeSlot(tokenNum);
+
+      document.getElementById('slipTokenNo').innerText = tokenFormatted;
+      document.getElementById('slipRationLastDigits').innerText = "Card Ending: " + last4Digits;
+      document.getElementById('slipTimeSlot').innerText = timeSlotText;
+      document.getElementById('slipDate').innerText = dateStr;
+      document.getElementById('slipRationNo').innerText = ration;
+      document.getElementById('slipName').innerText = name;
+      document.getElementById('slipPhone').innerText = phone;
+      document.getElementById('slipGeneratedOn').innerText = new Date().toLocaleString('hi-IN');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function openFindTokenModal() {
@@ -469,7 +609,6 @@
 
         if (error) throw error;
 
-        // इस कार्ड नंबर से जितने भी टोकन बुक हुए हैं, उन सबको छाँट लें
         var matchedBookings = bookingsData.filter(function(b) {
           var bCard = String(b.card || '').trim();
           return bCard === cardQuery || matches.some(x => x.fullCardNumber === bCard);
@@ -478,10 +617,8 @@
         if (matchedBookings && matchedBookings.length > 0) {
           resBox.innerHTML = '';
           if (matchedBookings.length === 1) {
-            // यदि केवल 1 बुकिंग है, तो सीधे स्लिप दिखाएं
             displayFoundBookingSlip(matchedBookings[0], matches);
           } else {
-            // यदि एक से अधिक (जैसे प्रियंका और धनमती दोनों के) टोकन हैं, तो ड्रॉपडाउन दिखाएं
             modalMultiContainer.classList.remove('hidden');
             foundBookingsCache = matchedBookings;
 
@@ -521,6 +658,7 @@
       var initials = getNameInitials(found.name);
       var tokenStr = initials + "-" + String(found.token_number).padStart(3, '0');
       var last4 = found.card ? found.card.slice(-4) : "----";
+      var timeSlotText = calculateTimeSlot(found.token_number);
 
       var modalSlipCard = document.getElementById('modalSlipCardElement');
       if (isRed) {
@@ -531,12 +669,12 @@
 
       document.getElementById('modalSlipTokenNo').innerText = tokenStr;
       document.getElementById('modalSlipRationLastDigits').innerText = "Card Ending: " + last4;
+      document.getElementById('modalSlipTimeSlot').innerText = timeSlotText;
       document.getElementById('modalSlipDate').innerText = found.token_date || found.date;
       document.getElementById('modalSlipRationNo').innerText = found.card;
       document.getElementById('modalSlipName').innerText = found.name;
       document.getElementById('modalSlipPhone').innerText = found.phone;
 
-      // मुख्य सर्च व्यू छुपाकर स्लिप दिखाएं
       document.getElementById('searchMainContent').classList.add('hidden');
       document.getElementById('searchResultSlipContainer').classList.remove('hidden');
       lucide.createIcons();
@@ -598,7 +736,6 @@
         var limit = item.limit_count || 200;
         var left = limit - booked;
         var isFull = left <= 0;
-        var percent = Math.min(100, Math.max(0, Math.round((booked / limit) * 100)));
 
         var statusClass = isFull ? 'full' : 'available';
         var statusText = isFull ? 'FULL (0 टोकन बाकी)' : left + ' टोकन उपलब्ध (' + limit + ' में से)';
@@ -616,146 +753,28 @@
               '<div class="text-sm font-black date-title text-slate-900 hindi-text">📅 ' + (item.label || item.date) + '</div>' +
               '<div class="text-xs font-bold ' + (isFull ? 'text-red-600' : 'text-emerald-700') + ' mt-0.5 date-sub hindi-text">' + statusText + '</div>' +
             '</div>' +
-            '<div class="text-xs font-bold">' +
-              (isFull ? '<span class="text-red-600 bg-red-100 px-2.5 py-1 rounded-lg hindi-text">फुल</span>' : '<span class="text-slate-900 bg-slate-200 px-2.5 py-1 rounded-lg hindi-text">चुनें ➔</span>') +
-            '</div>' +
-          '</div>' +
-          '<div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">' +
-            '<div class="' + (isFull ? 'bg-red-500' : 'bg-emerald-500') + ' h-full transition-all duration-500" style="width: ' + percent + '%"></div>' +
           '</div>';
 
         container.appendChild(box);
       });
     }
 
-    function selectDate(element, date) {
-      var allBoxes = document.querySelectorAll('.date-box');
-      allBoxes.forEach(function(el) { el.classList.remove('selected'); });
-      element.classList.add('selected');
-      selectedDate = date;
-    }
-
-    async function handleBooking(event) {
-      event.preventDefault();
-
-      if (!selectedDate) {
-        alert('कृपया बुकिंग की तारीख चुनें!');
-        return;
-      }
-
-      var name = document.getElementById('userName').value.trim().toUpperCase();
-      var phone = document.getElementById('userPhone').value.trim();
-      var ration = document.getElementById('userRation').value.trim();
-
-      if (!name) {
-        alert('कृपया नाम दर्ज करें!');
-        return;
-      }
-
-      var btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="hindi-text">जाँच हो रही है...</span>';
-      isBookingInProgress = true;
-
-      try {
-        let matches = searchCardsFlexible(ration);
-        const { data: existingBookings, error: checkErr } = await supabaseClient
-          .from('bookings')
-          .select('*');
-
-        if (checkErr) throw checkErr;
-
-        var alreadyBookedByName = existingBookings.find(function(b) {
-          var bCard = String(b.card || '').trim();
-          var bName = String(b.name || '').trim().toUpperCase();
-          var isCardMatch = (bCard === ration || matches.some(x => x.fullCardNumber === bCard));
-          return isCardMatch && (bName === name);
-        });
-
-        if (alreadyBookedByName) {
-          alert('इस नाम (' + name + ') से इस राशन कार्ड पर पहले ही टोकन बुक किया जा चुका है! हर कार्डधारक अपने नाम से केवल एक ही बार बुकिंग कर सकता है।');
-          location.reload();
-          return;
-        }
-
-        const { count, error: countErr } = await supabaseClient
-          .from('bookings')
-          .select('*', { count: 'exact', head: true })
-          .eq('token_date', selectedDate);
-
-        if (countErr) throw countErr;
-
-        var tokenSeq = (count || 0) + 1;
-
-        if (tokenSeq > 200) {
-          alert('क्षमा करें, इस तारीख के सभी टोकन बुक हो चुके हैं!');
-          location.reload();
-          return;
-        }
-
-        var initials = getNameInitials(name);
-        var formattedNum = String(tokenSeq).padStart(3, '0');
-        var fullTokenString = initials + "-" + formattedNum;
-
-        const { error: insertErr } = await supabaseClient
-          .from('bookings')
-          .insert([{
-            name: name,
-            phone: phone,
-            card: ration,
-            token_date: selectedDate,
-            token_number: tokenSeq,
-            status: 'PENDING'
-          }]);
-
-        if (insertErr) throw insertErr;
-
-        await supabaseClient
-          .from('slots')
-          .update({ booked_count: tokenSeq })
-          .eq('date', selectedDate);
-
-        document.getElementById('bookingScreen').classList.add('hidden');
-        document.getElementById('ticketScreen').classList.remove('hidden');
-
-        var slipCard = document.getElementById('slipCardElement');
-        if (isCurrentCardRed) {
-          slipCard.classList.add('red-card-theme');
-        } else {
-          slipCard.classList.remove('red-card-theme');
-        }
-
-        document.getElementById('slipTokenNo').innerText = fullTokenString;
-        document.getElementById('slipRationLastDigits').innerText = "Card Ending: " + ration.slice(-4);
-        document.getElementById('slipDate').innerText = selectedDate;
-        document.getElementById('slipRationNo').innerText = ration;
-        document.getElementById('slipName').innerText = name;
-        document.getElementById('slipPhone').innerText = phone;
-        document.getElementById('slipGeneratedOn').innerText = new Date().toLocaleString('hi-IN');
-
-        lucide.createIcons();
-      } catch (err) {
-        alert('बुकिंग में त्रुटि: ' + err.message);
-        location.reload();
-      }
-    }
-
     function downloadAsJPG() {
       var slipElement = document.getElementById('slipCardElement');
-      html2canvas(slipElement, { scale: 2, useCORS: true }).then(function(canvas) {
+      html2canvas(slipElement, { scale: 3, useCORS: true }).then(function(canvas) {
         var link = document.createElement('a');
-        link.download = 'Token_Slip_' + document.getElementById('slipTokenNo').innerText + '.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.download = 'Appointment_Token_Slip.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
         link.click();
       });
     }
 
     function downloadModalSlipAsJPG() {
       var slipElement = document.getElementById('modalSlipCardElement');
-      html2canvas(slipElement, { scale: 2, useCORS: true }).then(function(canvas) {
+      html2canvas(slipElement, { scale: 3, useCORS: true }).then(function(canvas) {
         var link = document.createElement('a');
-        link.download = 'Found_Token_Slip.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.download = 'Appointment_Token_Slip.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
         link.click();
       });
     }
