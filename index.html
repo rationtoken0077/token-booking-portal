@@ -371,14 +371,12 @@
       multiContainer.classList.add('hidden');
       multiSelect.innerHTML = '<option value="">-- नाम चुनें --</option>';
 
-      if (cardNo.length === 12) {
-        var first2 = cardNo.substring(0, 2);
-        if (first2 !== '21') {
-          nameInput.disabled = true;
-          statusBox.innerText = "कृपया सही नंबर डालें। नंबर की जांच करें।";
-          statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
-          return;
-        }
+      if (!/^21\d{10}$/.test(cardNo)) {
+    nameInput.disabled = true;
+    statusBox.innerText = "कृपया सही नंबर डालें। नंबर की जांच करें।";
+    statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-red-600 block";
+    return;
+      }
 
         statusBox.innerText = "कार्ड खोजा जा रहा है...";
         statusBox.className = "text-[11px] font-bold mt-1 px-1 hindi-text text-blue-600 block";
