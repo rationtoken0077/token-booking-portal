@@ -20,7 +20,6 @@
     .done-text { text-decoration: line-through; color: #166534 !important; }
     summary::-webkit-details-marker { display:none; }
     
-    /* Slip Styles */
     .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; }
     .printable-slip.red-card-theme {
       background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
@@ -200,7 +199,6 @@
                 <th class="p-3.5">Token ID</th>
                 <th class="p-3.5">Date</th>
                 <th class="p-3.5">Card Holder Name</th>
-                <th class="p-3.5">Booked By</th>
                 <th class="p-3.5">Phone</th>
                 <th class="p-3.5">Card No.</th>
                 <th class="p-3.5">Family Details / Update</th>
@@ -209,7 +207,7 @@
             </thead>
             <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
               <tr>
-                <td colspan="9" class="p-6 text-center text-slate-400">Loading bookings...</td>
+                <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
               </tr>
             </tbody>
           </table>
@@ -497,7 +495,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
         return;
       }
 
@@ -505,14 +503,41 @@
         var isDone = (b.status === 'COMPLETED');
         var cardNo = String(b.card || b.cardNo || b.ration_card_number || '').trim();
         
-        var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
-        if (!cardInfo && cardNo) {
-          var last4 = cardNo.slice(-4);
-          cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber.endsWith(last4); });
+        // --- FIX: Card Info nikaalte waqt card number + holder name dono match karo ---
+        var cardInfo = null;
+        var matchesByCard = globalCardsCache.filter(function(c) { return c.fullCardNumber === cardNo; });
+
+        if (matchesByCard.length === 1) {
+          cardInfo = matchesByCard[0];
+        } else if (matchesByCard.length > 1) {
+          // Duplicate hai — booking ke naam se match karo
+          var bookingName = (b.name || '').trim().toUpperCase();
+          cardInfo = matchesByCard.find(function(c) { return c.holderName === bookingName; });
+          if (!cardInfo) {
+            cardInfo = matchesByCard[0];
+          }
+        } else {
+          // Exact card number nahi mila, last 4 digit se try karo
+          if (cardNo) {
+            var last4 = cardNo.slice(-4);
+            var matchesByLast4 = globalCardsCache.filter(function(c) { return c.fullCardNumber.endsWith(last4); });
+
+            if (matchesByLast4.length === 1) {
+              cardInfo = matchesByLast4[0];
+            } else if (matchesByLast4.length > 1) {
+              var bookingName2 = (b.name || '').trim().toUpperCase();
+              cardInfo = matchesByLast4.find(function(c) { return c.holderName === bookingName2; });
+              if (!cardInfo) {
+                cardInfo = matchesByLast4[0];
+              }
+            }
+          }
         }
+
         if (!cardInfo) {
           cardInfo = { holderName: b.name || 'N/A', fatherHusbandName: 'N/A (Manual Entry)', motherName: 'N/A', units: 'N/A', cardType: 'WHITE' };
         }
+        // --- FIX END ---
 
         var initials = getNameInitials(cardInfo.holderName || b.name);
         var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
@@ -529,7 +554,6 @@
           '<td class="p-3.5 font-bold text-slate-900">' + fullToken + '</td>' +
           '<td class="p-3.5 text-slate-600 font-medium">' + (b.token_date || b.date || '-') + '</td>' +
           '<td class="p-3.5 font-bold text-slate-900">' + cardInfo.holderName + '</td>' +
-          '<td class="p-3.5 font-bold ' + (isDone ? 'done-text' : 'text-slate-900') + '">' + (b.name || b.userName || 'N/A') + '</td>' +
           '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
           '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
           '<td class="p-3.5">' +
@@ -551,6 +575,7 @@
           '</td>' +
           '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
             '<button onclick=\'showAdminSlip(' + JSON.stringify(b).replace(/'/g, "&apos;") + ', ' + (cardInfo.cardType === 'RED') + ')\' class="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-lg text-[11px]" title="View Slip"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>' +
+            '<button onclick="announceToken(\'' + fullToken + '\', ' + (b.token_number || 0) + ')" class="bg-purple-600 hover:bg-purple-700 text-white p-1 rounded-lg text-[11px]" title="Announce Token"><i data-lucide="volume-2" class="w-3.5 h-3.5"></i></button>' +
             (isDone ? '<button onclick="toggleStatus(' + (b.id || 0) + ', \'PENDING\')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2 py-1 rounded-lg text-[11px] transition">Undo</button>'
                     : '<button onclick="toggleStatus(' + (b.id || 0) + ', \'COMPLETED\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1 transition shadow-sm"><i data-lucide="check" class="w-3 h-3"></i> Done</button>') +
             '<button onclick="deleteBooking(' + (b.id || 0) + ')" class="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded-lg text-[11px]" title="Delete Booking"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' +
@@ -562,6 +587,89 @@
       lucide.createIcons();
     }
 
+    // --- Token Announcement Function (Indian Male Voice) ---
+    function announceToken(fullToken, tokenNumber) {
+      if (!('speechSynthesis' in window)) {
+        alert('Aapka browser voice announcement support nahi karta. Kripya Chrome ya Edge use karein.');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      var num = parseInt(tokenNumber, 10);
+      if (isNaN(num) || num === 0) {
+        var match = String(fullToken).match(/(\d+)$/);
+        num = match ? parseInt(match[1], 10) : 0;
+      }
+
+      var announcementText = 'टोकन नंबर ' + num + ' वाले तैयार हो जाएं। टोकन नंबर ' + num + ' वाले तैयार हो जाएं।';
+
+      var utterance = new SpeechSynthesisUtterance(announcementText);
+      utterance.lang = 'hi-IN';
+      utterance.rate = 0.9;
+      utterance.pitch = 0.85;
+      utterance.volume = 1.0;
+
+      var voices = window.speechSynthesis.getVoices();
+      var indianMaleVoice = null;
+
+      for (var i = 0; i < voices.length; i++) {
+        var v = voices[i];
+        var vName = v.name.toLowerCase();
+        var vLang = v.lang.toLowerCase();
+        if ((vLang === 'hi-in' || vLang === 'hi_in' || vLang.startsWith('hi')) && 
+            (vName.includes('male') || vName.includes('man') || vName.includes('raj') || vName.includes('aditya') || vName.includes('hemant'))) {
+          indianMaleVoice = v;
+          break;
+        }
+      }
+
+      if (!indianMaleVoice) {
+        for (var j = 0; j < voices.length; j++) {
+          var v2 = voices[j];
+          if (v2.lang.toLowerCase().startsWith('hi')) {
+            indianMaleVoice = v2;
+            break;
+          }
+        }
+      }
+
+      if (!indianMaleVoice) {
+        for (var k = 0; k < voices.length; k++) {
+          var v3 = voices[k];
+          var v3Lang = v3.lang.toLowerCase();
+          var v3Name = v3.name.toLowerCase();
+          if ((v3Lang === 'en-in' || v3Lang === 'en_in') && 
+              (v3Name.includes('male') || v3Name.includes('man') || v3Name.includes('ravi') || v3Name.includes('prabhat'))) {
+            indianMaleVoice = v3;
+            break;
+          }
+        }
+      }
+
+      if (!indianMaleVoice) {
+        for (var l = 0; l < voices.length; l++) {
+          var v4 = voices[l];
+          if (v4.lang.toLowerCase().includes('in')) {
+            indianMaleVoice = v4;
+            break;
+          }
+        }
+      }
+
+      if (indianMaleVoice) {
+        utterance.voice = indianMaleVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
     function showAdminSlip(booking, isRed) {
       var initials = getNameInitials(booking.name);
       var tokenStr = initials + "-" + String(booking.token_number || 1).padStart(3, '0');
@@ -571,7 +679,7 @@
       if (isRed) {
         slipCard.classList.add('red-card-theme');
       } else {
-        slipCard.classList.remove('red-card-theme'); // White card / manual entry default theme
+        slipCard.classList.remove('red-card-theme');
       }
 
       document.getElementById('admSlipTokenNo').innerText = tokenStr;
@@ -631,11 +739,9 @@
 
         alert('Admin dwara token safaltapoorvak book kar diya gaya hai!');
         
-        // Check if card is red card to determine slip theme
         var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
         var isRedCard = cardInfo ? (cardInfo.cardType === 'RED') : false;
 
-        // Automatically show slip
         var newBookingObj = { name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq };
         showAdminSlip(newBookingObj, isRedCard);
 
