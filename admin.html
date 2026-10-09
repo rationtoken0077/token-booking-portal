@@ -54,170 +54,262 @@
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div id="adminMainContent" class="hidden">
-    <!-- Header -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <div class="p-2 bg-slate-800 rounded-xl text-white border border-slate-700">
-            <i data-lucide="shield-check" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none">FPS Token Management System</h1>
-            <p class="text-xs text-slate-400 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
-          </div>
+  <!-- Main Content Layout with Left Sidebar -->
+  <div id="adminMainContent" class="hidden flex min-h-screen">
+    
+    <!-- Left Sidebar -->
+    <aside class="w-20 bg-slate-900 text-white flex flex-col items-center py-6 border-r border-slate-800 shrink-0 sticky top-0 h-screen z-40">
+      <div class="space-y-6 flex flex-col items-center w-full">
+        <div class="p-2.5 bg-slate-800 text-white rounded-2xl border border-slate-700 shadow-sm">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="loadAllData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-          </button>
-          <button onclick="logoutAdmin()" class="bg-red-500/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-3 py-2 rounded-xl text-xs transition">
-            Log Out
-          </button>
-        </div>
+        <div class="w-10 h-px bg-slate-800"></div>
+
+        <button onclick="switchTab('home')" id="navHomeBtn" title="Home Dashboard" class="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700">
+          <i data-lucide="layout-grid" class="w-6 h-6"></i>
+        </button>
+        <button onclick="switchTab('tokens')" id="navTokensBtn" title="Token Register & Distribution" class="w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white">
+          <i data-lucide="users" class="w-6 h-6"></i>
+        </button>
+        <button onclick="switchTab('masterTracker')" id="navTrackerBtn" title="Master Pending List (Red/White Card)" class="w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white">
+          <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+        </button>
       </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div class="mt-auto pt-4 flex flex-col items-center gap-3 w-full">
+        <button onclick="loadAllData()" title="Refresh Data" class="w-10 h-10 rounded-xl bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition border border-slate-700">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+        <button onclick="logoutAdmin()" title="Log Out" class="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-600 hover:text-white flex items-center justify-center transition border border-red-500/30">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </aside>
 
-      <!-- Add New Slot & Manual Admin Booking Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Add Slot Form -->
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="calendar-plus" class="text-slate-900 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
-          </div>
-
-          <form onsubmit="addNewSlot(event)" class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
-              <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
-              <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
-              <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
-            </div>
-            <button type="submit" id="addSlotBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
-              <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
-            </button>
-          </form>
+    <!-- Main Container Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+      
+      <header class="bg-white text-slate-900 border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-xs">
+        <div>
+          <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none text-slate-900">FPS Token Management System</h1>
+          <p class="text-xs text-slate-500 mt-1">Local Distribution Console (Kapil Dev Yadav - Gujarpar)</p>
         </div>
-
-        <!-- Admin Direct Booking Form with Auto-Fetch & Manual Fallback -->
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <i data-lucide="user-plus" class="text-slate-900 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking (Auto-Fetch + Manual Entry)</h2>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl">
+            <span class="text-xs font-bold text-slate-700">Public Portal Live:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="portalLiveToggle" onchange="togglePortalLiveStatus(this)" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
           </div>
 
-          <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
-              <select id="adminBookingDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
-                <option value="">-- Select Date --</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
-              <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase font-mono" oninput="adminAutoFetchCard(this)">
-            </div>
+          <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Admin Live
+          </span>
+        </div>
+      </header>
+
+      <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        <!-- TAB 1: HOME SECTION -->
+        <div id="tabContentHome" class="space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Multi Match Dropdown for Admin -->
-            <div id="adminMultiContainer" class="hidden sm:col-span-2 bg-slate-50 border border-slate-300 p-2.5 rounded-xl space-y-1">
-              <label class="block text-xs font-bold text-slate-800">Ek se adhik naam mile, kripya chunein:</label>
-              <select id="adminMultiSelect" onchange="adminSelectMatchedCard(this)" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white font-bold">
-                <option value="">-- Naam Chunein --</option>
-              </select>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i data-lucide="calendar-plus" class="text-slate-900 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
+              </div>
+
+              <form onsubmit="addNewSlot(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
+                  <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
+                  <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
+                  <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
+                </div>
+                <button type="submit" id="addSlotBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
+                </button>
+              </form>
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name (Manual entry allowed)</label>
-              <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
-              <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
-            </div>
-            <div class="sm:col-span-2 flex gap-2">
-              <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs transition">
-                Book Token & Generate Slip
-              </button>
-            </div>
-          </form>
-        </div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i data-lucide="user-plus" class="text-slate-900 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking</h2>
+              </div>
 
-      </div>
+              <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
+                  <select id="adminBookingDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
+                    <option value="">-- Select Date --</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No (12 Digit)</label>
+                  <input type="text" id="adminCardNo" placeholder="21XXXXXX1234" required maxlength="12" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase font-mono" oninput="adminAutoFetchCard(this)">
+                </div>
+                
+                <div id="adminMultiContainer" class="hidden sm:col-span-2 bg-slate-50 border border-slate-300 p-2.5 rounded-xl space-y-1">
+                  <label class="block text-xs font-bold text-slate-800">Ek se adhik naam mile, kripya chunein:</label>
+                  <select id="adminMultiSelect" onchange="adminSelectMatchedCard(this)" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white font-bold">
+                    <option value="">-- Naam Chunein --</option>
+                  </select>
+                </div>
 
-      <!-- Active Slots & Seat Controls -->
-      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
-            <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
+                  <input type="text" id="adminHolderName" placeholder="Card Holder Name" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
+                  <input type="tel" id="adminPhone" placeholder="Mobile Number" maxlength="10" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
+                </div>
+                <div class="sm:col-span-2 flex gap-2">
+                  <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs transition">
+                    Book Token & Generate Slip
+                  </button>
+                </div>
+              </form>
+            </div>
+
           </div>
-          <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
-        </div>
 
-        <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
-          <p class="text-xs text-slate-400">Loading active slots...</p>
-        </div>
-      </div>
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+              </div>
+              <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
+            </div>
 
-      <!-- Booking Table with Date Filter -->
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        
-        <!-- Filter Bar -->
-        <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
-              <i data-lucide="users" class="text-slate-900 w-5 h-5"></i> Customer Booking Register & Details
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Details dropdown se father name, mother name, units dekhein aur card number update karein</p>
-          </div>
-
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label class="text-xs font-bold text-slate-600">Filter Date:</label>
-            <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl p-2 outline-none focus:ring-2 focus:ring-slate-900">
-              <option value="ALL">All Dates</option>
-            </select>
+            <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
+              <p class="text-xs text-slate-400">Loading active slots...</p>
+            </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                <th class="p-3.5">Status</th>
-                <th class="p-3.5">Token ID</th>
-                <th class="p-3.5">Date</th>
-                <th class="p-3.5">Card Holder Name</th>
-                <th class="p-3.5">Phone</th>
-                <th class="p-3.5">Card No.</th>
-                <th class="p-3.5">Family Details / Update</th>
-                <th class="p-3.5 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
-              <tr>
-                <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <!-- TAB 2: TOKENS SECTION -->
+        <div id="tabContentTokens" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                  <i data-lucide="users" class="text-slate-900 w-5 h-5"></i> Customer Booking Register & Details
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Yhi se 'Done' button dabane par token complete hoga aur master list se hat jayega</p>
+              </div>
 
-    </main>
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <label class="text-xs font-bold text-slate-600">Filter Date:</label>
+                <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl p-2 outline-none focus:ring-2 focus:ring-slate-900">
+                  <option value="ALL">All Dates</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <th class="p-3.5">Status</th>
+                    <th class="p-3.5">Token ID</th>
+                    <th class="p-3.5">Date</th>
+                    <th class="p-3.5">Card Holder Name</th>
+                    <th class="p-3.5">Phone</th>
+                    <th class="p-3.5">Card No.</th>
+                    <th class="p-3.5">Family Details / Update</th>
+                    <th class="p-3.5 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
+                  <tr>
+                    <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: MASTER PENDING TRACKER -->
+        <div id="tabContentMasterTracker" class="space-y-6 hidden">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                  <i data-lucide="clipboard-list" class="text-red-600 w-5 h-5"></i> Master Card Live Pending Tracker (Red & White)
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Yeh list sahi 924+ cards dikha rahi hai jisme naam aur number dono ke anusaar duplicate filter hain.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="masterCardTypeFilter" onchange="renderMasterTracker()" class="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                  <option value="ALL">All Cards (Red + White)</option>
+                  <option value="RED">Red Card Only</option>
+                  <option value="WHITE">White Card Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-red-50 border border-red-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-red-700 uppercase">Red Card Pending</div>
+                <div class="text-xl font-black text-red-900 mt-0.5" id="statRedPending">-</div>
+              </div>
+              <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-emerald-700 uppercase">Red Card Done</div>
+                <div class="text-xl font-black text-emerald-900 mt-0.5" id="statRedDone">-</div>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-blue-700 uppercase">White Card Pending</div>
+                <div class="text-xl font-black text-blue-900 mt-0.5" id="statWhitePending">-</div>
+              </div>
+              <div class="bg-slate-100 border border-slate-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-slate-700 uppercase">White Card Done</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5" id="statWhiteDone">-</div>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <input type="text" id="masterSearchInput" oninput="renderMasterTracker()" placeholder="Naam ya Card Number से खोजें..." class="w-full border border-slate-300 p-3 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase">
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <th class="p-3.5">Card Type</th>
+                    <th class="p-3.5">Ration Card No.</th>
+                    <th class="p-3.5">Holder Name</th>
+                    <th class="p-3.5">Father / Husband</th>
+                    <th class="p-3.5">Units</th>
+                    <th class="p-3.5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="masterTrackerTableBody" class="divide-y divide-slate-200 font-medium">
+                  <tr>
+                    <td colspan="6" class="p-6 text-center text-slate-400">Loading master cards...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
   </div>
 
-  <!-- Printable Slip Modal for Admin -->
+  <!-- Printable Slip Modal -->
   <div id="adminSlipModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4 relative my-auto">
       <button onclick="closeAdminSlipModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 z-10">
@@ -285,8 +377,57 @@
       if (sessionStorage.getItem("adminAuth") === "true") {
         unlockAdminPanel();
       }
+      checkPortalLiveStatusState();
       lucide.createIcons();
     };
+
+    async function checkPortalLiveStatusState() {
+      try {
+        const { data } = await supabaseClient.from('settings').select('*').eq('key', 'portal_live').single();
+        if (data) {
+          document.getElementById('portalLiveToggle').checked = (data.value === 'true' || data.value === true);
+        }
+      } catch(e) {}
+    }
+
+    async function togglePortalLiveStatus(checkbox) {
+      var isLive = checkbox.checked;
+      try {
+        await supabaseClient.from('settings').upsert({ key: 'portal_live', value: String(isLive) });
+      } catch(e) {
+        alert('Status update karne mein error aayi.');
+      }
+    }
+
+    function switchTab(tabName) {
+      var homeTab = document.getElementById('tabContentHome');
+      var tokensTab = document.getElementById('tabContentTokens');
+      var masterTab = document.getElementById('tabContentMasterTracker');
+
+      var btnHome = document.getElementById('navHomeBtn');
+      var btnTokens = document.getElementById('navTokensBtn');
+      var btnTracker = document.getElementById('navTrackerBtn');
+
+      homeTab.classList.add('hidden');
+      tokensTab.classList.add('hidden');
+      masterTab.classList.add('hidden');
+
+      btnHome.className = 'w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white';
+      btnTokens.className = 'w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white';
+      btnTracker.className = 'w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white';
+
+      if (tabName === 'home') {
+        homeTab.classList.remove('hidden');
+        btnHome.className = 'w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700';
+      } else if (tabName === 'tokens') {
+        tokensTab.classList.remove('hidden');
+        btnTokens.className = 'w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700';
+      } else if (tabName === 'masterTracker') {
+        masterTab.classList.remove('hidden');
+        btnTracker.className = 'w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700';
+        renderMasterTracker();
+      }
+    }
 
     function verifyAdminPassword(e) {
       e.preventDefault();
@@ -315,10 +456,13 @@
       await fetchGlobalCardsCache();
       await loadSlots();
       await loadBookings();
+      renderMasterTracker();
+      checkPortalLiveStatusState();
     }
 
+    // --- FIX: Card Number + Holder Name dono ko mila kar unique key banayi taaki 924+ poore cards sahi se dikhein ---
     async function fetchGlobalCardsCache() {
-      globalCardsCache = [];
+      var cardMap = new Map();
       const tables = [
         { name: 'red_card', type: 'RED' },
         { name: 'duplicate', type: 'RED' },
@@ -334,22 +478,24 @@
               var cNum = String(card.card_number || card.ration_card_number || card.number || '').trim().toUpperCase();
               var hName = String(card.holder_name || card.name || 'N/A').trim().toUpperCase();
               if (cNum) {
-                globalCardsCache.push({
-                  fullCardNumber: cNum,
-                  holderName: hName,
-                  fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
-                  motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
-                  units: String(card.units || card.total_units || 'N/A').trim(),
-                  cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : (card.card_type || t.type),
-                  tableName: t.name
-                });
+                var uniqueKey = cNum + "_" + hName; // Card number aur Name dono se unique key taaki duplicate naam na katein
+                if (!cardMap.has(uniqueKey)) {
+                  cardMap.set(uniqueKey, {
+                    fullCardNumber: cNum,
+                    holderName: hName,
+                    fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
+                    motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
+                    units: String(card.units || card.total_units || 'N/A').trim(),
+                    cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : (card.card_type || t.type),
+                    tableName: t.name
+                  });
+                }
               }
             });
           }
-        } catch (err) {
-          console.error("Error fetching table " + t.name + ":", err);
-        }
+        } catch (err) {}
       }
+      globalCardsCache = Array.from(cardMap.values());
     }
 
     function searchCardsFlexible(inputCard) {
@@ -370,7 +516,6 @@
       return matches;
     }
 
-    // Admin Auto Fetch Logic with Manual Fallback
     function adminAutoFetchCard(input) {
       input.value = input.value.replace(/[^0-9]/g, '').slice(0, 12);
       var cardNo = input.value;
@@ -396,8 +541,6 @@
               multiSelect.appendChild(opt);
             });
           }
-        } else {
-          // Database mein nahi mila toh admin manual naam type kar sakta hai, isliye alert ya restriction nahi lagayi
         }
       }
     }
@@ -410,7 +553,7 @@
 
     async function loadSlots() {
       const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
-      if (error) { console.error(error); return; }
+      if (error) return;
 
       allSlotsData = data || [];
       var slotsContainer = document.getElementById('slotsContainer');
@@ -482,6 +625,7 @@
       const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
       allBookingsData = (!error && data) ? data : [];
       filterBookingsByDate();
+      renderMasterTracker();
     }
 
     function filterBookingsByDate() {
@@ -503,41 +647,32 @@
         var isDone = (b.status === 'COMPLETED');
         var cardNo = String(b.card || b.cardNo || b.ration_card_number || '').trim();
         
-        // --- FIX: Card Info nikaalte waqt card number + holder name dono match karo ---
         var cardInfo = null;
         var matchesByCard = globalCardsCache.filter(function(c) { return c.fullCardNumber === cardNo; });
 
         if (matchesByCard.length === 1) {
           cardInfo = matchesByCard[0];
         } else if (matchesByCard.length > 1) {
-          // Duplicate hai — booking ke naam se match karo
           var bookingName = (b.name || '').trim().toUpperCase();
           cardInfo = matchesByCard.find(function(c) { return c.holderName === bookingName; });
-          if (!cardInfo) {
-            cardInfo = matchesByCard[0];
-          }
+          if (!cardInfo) { cardInfo = matchesByCard[0]; }
         } else {
-          // Exact card number nahi mila, last 4 digit se try karo
           if (cardNo) {
             var last4 = cardNo.slice(-4);
             var matchesByLast4 = globalCardsCache.filter(function(c) { return c.fullCardNumber.endsWith(last4); });
-
             if (matchesByLast4.length === 1) {
               cardInfo = matchesByLast4[0];
             } else if (matchesByLast4.length > 1) {
               var bookingName2 = (b.name || '').trim().toUpperCase();
               cardInfo = matchesByLast4.find(function(c) { return c.holderName === bookingName2; });
-              if (!cardInfo) {
-                cardInfo = matchesByLast4[0];
-              }
+              if (!cardInfo) { cardInfo = matchesByLast4[0]; }
             }
           }
         }
 
         if (!cardInfo) {
-          cardInfo = { holderName: b.name || 'N/A', fatherHusbandName: 'N/A (Manual Entry)', motherName: 'N/A', units: 'N/A', cardType: 'WHITE' };
+          cardInfo = { holderName: b.name || 'N/A', fatherHusbandName: 'N/A', motherName: 'N/A', units: 'N/A', cardType: 'WHITE' };
         }
-        // --- FIX END ---
 
         var initials = getNameInitials(cardInfo.holderName || b.name);
         var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
@@ -587,110 +722,262 @@
       lucide.createIcons();
     }
 
-    // --- Token Announcement Function (Indian Male Voice) ---
-    function announceToken(fullToken, tokenNumber) {
-      if (!('speechSynthesis' in window)) {
-        alert('Aapka browser voice announcement support nahi karta. Kripya Chrome ya Edge use karein.');
+    function isCardCompletedByBooking(cardNum, cardName) {
+      return allBookingsData.some(function(b) {
+        var bCard = String(b.card || b.cardNo || '').trim().toUpperCase();
+        var bName = String(b.name || '').trim().toUpperCase();
+        return bCard === cardNum && bName === cardName && b.status === 'COMPLETED';
+      });
+    }
+
+    function renderMasterTracker() {
+      var tbody = document.getElementById('masterTrackerTableBody');
+      var typeFilter = document.getElementById('masterCardTypeFilter').value;
+      var searchQuery = document.getElementById('masterSearchInput').value.trim().toUpperCase();
+
+      tbody.innerHTML = '';
+
+      var redTotal = 0, redDoneCount = 0;
+      var whiteTotal = 0, whiteDoneCount = 0;
+
+      globalCardsCache.forEach(function(c) {
+        var isDone = isCardCompletedByBooking(c.fullCardNumber, c.holderName);
+        if (c.cardType === 'RED') {
+          redTotal++;
+          if (isDone) redDoneCount++;
+        } else {
+          whiteTotal++;
+          if (isDone) whiteDoneCount++;
+        }
+      });
+
+      document.getElementById('statRedPending').innerText = (redTotal - redDoneCount) + ' / ' + redTotal;
+      document.getElementById('statRedDone').innerText = redDoneCount;
+      document.getElementById('statWhitePending').innerText = (whiteTotal - whiteDoneCount) + ' / ' + whiteTotal;
+      document.getElementById('statWhiteDone').innerText = whiteDoneCount;
+
+      var filteredCards = globalCardsCache.filter(function(c) {
+        if (isCardCompletedByBooking(c.fullCardNumber, c.holderName)) return false;
+        if (typeFilter !== 'ALL' && c.cardType !== typeFilter) return false;
+        if (searchQuery) {
+          var matchCard = c.fullCardNumber.includes(searchQuery);
+          var matchName = c.holderName.includes(searchQuery);
+          if (!matchCard && !matchName) return false;
+        }
+        return true;
+      });
+
+      if (filteredCards.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-medium">Sabhi ration card holders ka ration distribution complete ho chuka hai!</td></tr>';
         return;
       }
 
-      window.speechSynthesis.cancel();
+      filteredCards.forEach(function(c) {
+        var isRed = (c.cardType === 'RED');
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
 
+        tr.innerHTML = 
+          '<td class="p-3.5">' +
+            (isRed ? '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-md font-bold text-[10px]">Red Card</span>' 
+                   : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-bold text-[10px]">White Card</span>') +
+          '</td>' +
+          '<td class="p-3.5 font-mono font-bold text-slate-800">' + c.fullCardNumber + '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + c.holderName + '</td>' +
+          '<td class="p-3.5 text-slate-600">' + c.fatherHusbandName + '</td>' +
+          '<td class="p-3.5"><span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded font-bold">' + c.units + '</span></td>' +
+          '<td class="p-3.5 text-center">' +
+            '<span class="text-amber-700 font-bold bg-amber-100 px-2.5 py-1 rounded-xl text-[10px]">Pending</span>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function announceToken(fullToken, tokenNumber) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
       var num = parseInt(tokenNumber, 10);
       if (isNaN(num) || num === 0) {
         var match = String(fullToken).match(/(\d+)$/);
-        num = match ? parseInt(match[1], 10) : 0;
+        num = match ? parseInt(match[1], 10) : 1;
       }
-
-      var announcementText = 'टोकन नंबर ' + num + ' वाले तैयार हो जाएं। टोकन नंबर ' + num + ' वाले तैयार हो जाएं।';
-
-      var utterance = new SpeechSynthesisUtterance(announcementText);
+      var textToSpeak = "Token number " + num + ", kripya ration prapt karne ke liye counter par aayein.";
+      var utterance = new SpeechSynthesisUtterance(textToSpeak);
       utterance.lang = 'hi-IN';
       utterance.rate = 0.9;
-      utterance.pitch = 0.85;
-      utterance.volume = 1.0;
-
-      var voices = window.speechSynthesis.getVoices();
-      var indianMaleVoice = null;
-
-      for (var i = 0; i < voices.length; i++) {
-        var v = voices[i];
-        var vName = v.name.toLowerCase();
-        var vLang = v.lang.toLowerCase();
-        if ((vLang === 'hi-in' || vLang === 'hi_in' || vLang.startsWith('hi')) && 
-            (vName.includes('male') || vName.includes('man') || vName.includes('raj') || vName.includes('aditya') || vName.includes('hemant'))) {
-          indianMaleVoice = v;
-          break;
-        }
-      }
-
-      if (!indianMaleVoice) {
-        for (var j = 0; j < voices.length; j++) {
-          var v2 = voices[j];
-          if (v2.lang.toLowerCase().startsWith('hi')) {
-            indianMaleVoice = v2;
-            break;
-          }
-        }
-      }
-
-      if (!indianMaleVoice) {
-        for (var k = 0; k < voices.length; k++) {
-          var v3 = voices[k];
-          var v3Lang = v3.lang.toLowerCase();
-          var v3Name = v3.name.toLowerCase();
-          if ((v3Lang === 'en-in' || v3Lang === 'en_in') && 
-              (v3Name.includes('male') || v3Name.includes('man') || v3Name.includes('ravi') || v3Name.includes('prabhat'))) {
-            indianMaleVoice = v3;
-            break;
-          }
-        }
-      }
-
-      if (!indianMaleVoice) {
-        for (var l = 0; l < voices.length; l++) {
-          var v4 = voices[l];
-          if (v4.lang.toLowerCase().includes('in')) {
-            indianMaleVoice = v4;
-            break;
-          }
-        }
-      }
-
-      if (indianMaleVoice) {
-        utterance.voice = indianMaleVoice;
-      }
-
       window.speechSynthesis.speak(utterance);
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = function() {
-        window.speechSynthesis.getVoices();
-      };
+    async function addNewSlot(e) {
+      e.preventDefault();
+      var date = document.getElementById('slotDate').value;
+      var label = document.getElementById('slotLabel').value;
+      var limit = parseInt(document.getElementById('slotLimit').value, 10) || 200;
+
+      const { error } = await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
+      if (error) {
+        alert('Slot add karne mein error aayi: ' + error.message);
+      } else {
+        alert('Naya date slot safaltapoorvak publish ho gaya!');
+        document.getElementById('slotDate').value = '';
+        document.getElementById('slotLabel').value = '';
+        loadSlots();
+      }
     }
 
-    function showAdminSlip(booking, isRed) {
-      var initials = getNameInitials(booking.name);
-      var tokenStr = initials + "-" + String(booking.token_number || 1).padStart(3, '0');
-      var last4 = booking.card ? booking.card.slice(-4) : "----";
+    async function deleteSlot(dateCode) {
+      if (confirm('Kya aap waqai is date slot ko aur isse jude sabhi tokens ko delete karna chahte hain?')) {
+        await supabaseClient.from('bookings').delete().eq('token_date', dateCode);
+        await supabaseClient.from('bookings').delete().eq('date', dateCode);
 
+        const { error } = await supabaseClient.from('slots').delete().eq('date', dateCode);
+        if (error) {
+          alert('Delete karne mein error aayi: ' + error.message);
+        } else {
+          alert('Date slot aur uske sabhi tokens safaltapoorvak hata diye gaye hain!');
+          loadSlots();
+          loadBookings();
+        }
+      }
+    }
+
+    async function adminDirectBooking(e) {
+      e.preventDefault();
+      var date = document.getElementById('adminBookingDate').value;
+      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
+      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
+      var phone = document.getElementById('adminPhone').value.trim();
+
+      if (!date) {
+        alert('Kripya date slot chunein.');
+        return;
+      }
+
+      const { data: slotData, error: slotErr } = await supabaseClient.from('slots').select('*').eq('date', date).single();
+      if (slotErr || !slotData) {
+        alert('Selected date slot nahi mila.');
+        return;
+      }
+
+      var currentBooked = slotData.booked_count || 0;
+      var limitCount = slotData.limit_count || 200;
+
+      if (currentBooked >= limitCount) {
+        alert('Is date ka token limit poora bhar chuka hai!');
+        return;
+      }
+
+      var newTokenNo = currentBooked + 1;
+
+      const { data: insertData, error: insertErr } = await supabaseClient.from('bookings').insert([{
+        token_date: date,
+        date: date,
+        card: cardNo,
+        cardNo: cardNo,
+        name: holderName,
+        phone: phone,
+        token_number: newTokenNo,
+        status: 'PENDING'
+      }]).select();
+
+      if (insertErr) {
+        alert('Booking save karne mein error aayi: ' + insertErr.message);
+        return;
+      }
+
+      await supabaseClient.from('slots').update({ booked_count: newTokenNo }).eq('date', date);
+
+      alert('Token safaltapoorvak book ho gaya! Token Number: ' + newTokenNo);
+      
+      document.getElementById('adminCardNo').value = '';
+      document.getElementById('adminHolderName').value = '';
+      document.getElementById('adminPhone').value = '';
+      document.getElementById('adminMultiContainer').classList.add('hidden');
+
+      loadSlots();
+      loadBookings();
+
+      if (insertData && insertData.length > 0) {
+        var cardInfoCheck = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
+        var isRed = cardInfoCheck ? (cardInfoCheck.cardType === 'RED') : false;
+        showAdminSlip(insertData[0], isRed);
+      }
+    }
+
+    async function toggleStatus(bookingId, newStatus) {
+      const { error } = await supabaseClient.from('bookings').update({ status: newStatus }).eq('id', bookingId);
+      if (error) {
+        alert('Status update karne mein error aayi: ' + error.message);
+      } else {
+        loadBookings();
+      }
+    }
+
+    async function deleteBooking(bookingId) {
+      if (confirm('Kya aap waqai is booking ko delete karna chahte hain?')) {
+        const { error } = await supabaseClient.from('bookings').delete().eq('id', bookingId);
+        if (error) {
+          alert('Delete karne mein error aayi: ' + error.message);
+        } else {
+          loadBookings();
+          loadSlots();
+        }
+      }
+    }
+
+    async function quickUpdateCard(bookingId) {
+      var inputField = document.getElementById('up-card-' + bookingId);
+      var newCardNo = inputField.value.trim().toUpperCase();
+
+      if (newCardNo.length !== 12) {
+        alert('Kripya 12 anko ka valid ration card number darj karein.');
+        return;
+      }
+
+      const { error } = await supabaseClient.from('bookings').update({ card: newCardNo, cardNo: newCardNo }).eq('id', bookingId);
+      if (error) {
+        alert('Card number update karne mein error aayi: ' + error.message);
+      } else {
+        alert('Card number safaltapoorvak update ho gaya!');
+        loadBookings();
+      }
+    }
+
+    var currentActiveSlipBooking = null;
+
+    function showAdminSlip(booking, isRedCard) {
+      currentActiveSlipBooking = booking;
       var slipCard = document.getElementById('adminSlipCardElement');
-      if (isRed) {
+      
+      if (isRedCard) {
         slipCard.classList.add('red-card-theme');
       } else {
         slipCard.classList.remove('red-card-theme');
       }
 
-      document.getElementById('admSlipTokenNo').innerText = tokenStr;
-      document.getElementById('admSlipRationLastDigits').innerText = "Card Ending: " + last4;
-      document.getElementById('admSlipDate').innerText = booking.token_date || booking.date;
-      document.getElementById('admSlipRationNo').innerText = booking.card;
-      document.getElementById('admSlipName').innerText = booking.name;
-      document.getElementById('admSlipPhone').innerText = booking.phone;
+      var cardNo = String(booking.card || booking.cardNo || booking.ration_card_number || 'N/A').trim();
+      var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
+      if (!cardInfo && cardNo.length >= 4) {
+        var last4 = cardNo.slice(-4);
+        cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber.endsWith(last4); });
+      }
+
+      var holderName = (cardInfo ? cardInfo.holderName : null) || booking.name || 'N/A';
+      var initials = getNameInitials(holderName);
+      var formattedNum = String(booking.token_number || booking.id || '1').padStart(3, '0');
+      var fullToken = initials + '-' + formattedNum;
+
+      document.getElementById('admSlipTokenNo').innerText = fullToken;
+      document.getElementById('admSlipRationLastDigits').innerText = cardNo.length >= 4 ? ('Card Ending: ...' + cardNo.slice(-4)) : ('Card: ' + cardNo);
+      document.getElementById('admSlipDate').innerText = booking.token_date || booking.date || '-';
+      document.getElementById('admSlipRationNo').innerText = cardNo;
+      document.getElementById('admSlipName').innerText = holderName;
+      document.getElementById('admSlipPhone').innerText = booking.phone || 'N/A';
 
       document.getElementById('adminSlipModal').classList.remove('hidden');
-      lucide.createIcons();
     }
 
     function closeAdminSlipModal() {
@@ -701,118 +988,10 @@
       var slipElement = document.getElementById('adminSlipCardElement');
       html2canvas(slipElement, { scale: 3, useCORS: true }).then(function(canvas) {
         var link = document.createElement('a');
-        link.download = 'Token_Slip_' + document.getElementById('admSlipTokenNo').innerText + '.jpg';
+        link.download = 'Ration_Token_Slip_' + (currentActiveSlipBooking ? (currentActiveSlipBooking.token_number || 'slip') : 'admin') + '.jpg';
         link.href = canvas.toDataURL('image/jpeg', 0.95);
         link.click();
       });
-    }
-
-    async function adminDirectBooking(e) {
-      e.preventDefault();
-      var date = document.getElementById('adminBookingDate').value;
-      var cardNo = document.getElementById('adminCardNo').value.trim().toUpperCase();
-      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
-      var phone = document.getElementById('adminPhone').value.trim();
-
-      if (!date || !cardNo || !holderName) {
-        alert('Kripya sabhi avashyak jankari bharein!');
-        return;
-      }
-
-      try {
-        const { count, error: countErr } = await supabaseClient
-          .from('bookings')
-          .select('*', { count: 'exact', head: true })
-          .eq('token_date', date);
-
-        if (countErr) throw countErr;
-        var tokenSeq = (count || 0) + 1;
-
-        const { error: insertErr } = await supabaseClient
-          .from('bookings')
-          .insert([{ name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq, status: 'PENDING' }]);
-
-        if (insertErr) throw insertErr;
-
-        await supabaseClient.from('slots').update({ booked_count: tokenSeq }).eq('date', date);
-        await supabaseClient.from('cards').upsert([{ card_number: cardNo, holder_name: holderName }], { onConflict: 'card_number' });
-
-        alert('Admin dwara token safaltapoorvak book kar diya gaya hai!');
-        
-        var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
-        var isRedCard = cardInfo ? (cardInfo.cardType === 'RED') : false;
-
-        var newBookingObj = { name: holderName, phone: phone, card: cardNo, token_date: date, token_number: tokenSeq };
-        showAdminSlip(newBookingObj, isRedCard);
-
-        document.getElementById('adminCardNo').value = '';
-        document.getElementById('adminHolderName').value = '';
-        document.getElementById('adminPhone').value = '';
-        loadAllData();
-
-      } catch (err) {
-        alert('Booking karne mein samasya aayi: ' + (err.message || err));
-      }
-    }
-
-    async function quickUpdateCard(bookingId) {
-      var newCardNo = document.getElementById('up-card-' + bookingId).value.trim().toUpperCase();
-      if (!newCardNo || newCardNo.length !== 12) {
-        alert('Kripya pura 12 anko ka vaid ration card number darj karein!');
-        return;
-      }
-      try {
-        await supabaseClient.from('bookings').update({ card: newCardNo }).eq('id', bookingId);
-        await supabaseClient.from('cards').upsert([{ card_number: newCardNo }], { onConflict: 'card_number' });
-        alert('Card number safaltapoorvak update ho gaya!');
-        loadAllData();
-      } catch (err) {
-        alert('Truti: ' + (err.message || err));
-      }
-    }
-
-    async function toggleStatus(bookingId, newStatus) {
-      try {
-        await supabaseClient.from('bookings').update({ status: newStatus }).eq('id', bookingId);
-        loadBookings();
-      } catch (err) {
-        alert('Update failed: ' + (err.message || err));
-      }
-    }
-
-    async function deleteBooking(bookingId) {
-      if (!confirm('Kya aap vakai is booking ko hatana chahte hain?')) return;
-      try {
-        await supabaseClient.from('bookings').delete().eq('id', bookingId);
-        loadAllData();
-      } catch (err) {
-        alert('Truti: ' + (err.message || err));
-      }
-    }
-
-    async function deleteSlot(dateCode) {
-      if (!confirm('Kya aap vakai tarikh ' + dateCode + ' ko hatana chahte hain?')) return;
-      try {
-        await supabaseClient.from('slots').delete().eq('date', dateCode);
-        loadAllData();
-      } catch (err) {
-        alert('Truti: ' + (err.message || err));
-      }
-    }
-
-    async function addNewSlot(e) {
-      e.preventDefault();
-      var date = document.getElementById('slotDate').value;
-      var label = document.getElementById('slotLabel').value;
-      var limit = parseInt(document.getElementById('slotLimit').value);
-
-      try {
-        await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
-        alert('Naya slot publish ho gaya!');
-        loadAllData();
-      } catch (err) {
-        alert('Truti: ' + (err.message || err));
-      }
     }
   </script>
 </body>
