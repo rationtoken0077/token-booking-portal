@@ -51,6 +51,15 @@
       <p class="text-slate-600 text-xs font-bold mt-1 hindi-text">राशन वितरण ऑनलाइन बुकिंग</p>
     </div>
 
+    <!-- Portal Offline Notice Screen (जब QR स्कैन करने पर बंद मिलेगा) -->
+    <div id="offlineScreen" class="hidden premium-card rounded-3xl p-8 text-center space-y-4">
+      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full mx-auto flex items-center justify-center">
+        <i data-lucide="ban" class="w-8 h-8"></i>
+      </div>
+      <h2 class="text-xl font-black text-slate-900 hindi-text">अभी वितरण बंद है</h2>
+      <p class="text-sm font-bold text-slate-600 hindi-text" id="offlineMsg">वर्तमान में राशन वितरण ऑनलाइन बुकिंग बंद कर दी गई है। कृपया बाद में प्रयास करें।</p>
+    </div>
+
     <!-- Booking Form Screen -->
     <div id="bookingScreen" class="premium-card rounded-3xl p-5 sm:p-7 space-y-5">
       <div class="flex justify-between items-center bg-slate-100 p-3 rounded-2xl border border-slate-200">
@@ -250,7 +259,6 @@
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Updated user-provided AVIF image link
     var RAW_PHOTO_URL = "https://user42907.na.imgto.link/public/20261009/019d031fd51235867555a161-whatsapp-image-2026-09-17-at-12-58-51-am.avif";
     var selectedDate = '';
     var isBookingInProgress = false;
@@ -271,9 +279,34 @@
         modalImgElem.src = RAW_PHOTO_URL;
       }
       
+      checkAdminPortalStatus();
       loadSlotsData();
       loadAllCardsCache();
     };
+
+    // QR कोड स्कैन करके जैसे ही यूजर आएगा, यह डेटाबेस से चेक करेगा कि पोर्टल लाइव है या बंद
+    async function checkAdminPortalStatus() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('settings')
+          .select('*')
+          .limit(1);
+
+        if (data && data.length > 0) {
+          var setting = data[0];
+          var isLive = setting.is_live !== undefined ? setting.is_live : (setting.portal_live !== undefined ? setting.portal_live : true);
+          var customMsg = setting.message || setting.offline_message || "वर्तमान में राशन वितरण ऑनलाइन बुकिंग बंद कर दी गई है। कृपया बाद में प्रयास करें।";
+
+          if (isLive === false || isLive === 'false' || isLive === 0) {
+            document.getElementById('bookingScreen').classList.add('hidden');
+            document.getElementById('offlineMsg').innerText = customMsg;
+            document.getElementById('offlineScreen').classList.remove('hidden');
+          }
+        }
+      } catch (e) {
+        // अगर settings टेबल नहीं मिली, तो डिफॉल्ट रूप से चालू रहेगा
+      }
+    }
 
     function formatDateToHindi(dateStr) {
       if (!dateStr) return '';
