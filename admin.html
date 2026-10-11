@@ -127,10 +127,6 @@
                   <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-600 mb-1">Display Label</label>
-                  <input type="text" id="slotLabel" placeholder="e.g., 26 September 2026" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
-                </div>
-                <div>
                   <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
                   <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
                 </div>
@@ -249,7 +245,7 @@
                 <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
                   <i data-lucide="clipboard-list" class="text-red-600 w-5 h-5"></i> Master Card Live Pending Tracker (Red & White)
                 </h2>
-                <p class="text-xs text-slate-500 mt-0.5">Yeh list sahi 924+ cards dikha rahi hai jisme naam aur number dono ke anusaar duplicate filter hain.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Yeh list sahi cards dikha rahi hai jisme naam aur number dono ke anusaar duplicate filter hain.</p>
               </div>
               <div class="flex items-center gap-2">
                 <select id="masterCardTypeFilter" onchange="renderMasterTracker()" class="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
@@ -480,7 +476,7 @@
             data.forEach(function(card) {
               var cNum = String(card.card_number || card.ration_card_number || card.number || '').trim().toUpperCase();
               var hName = String(card.holder_name || card.name || 'N/A').trim().toUpperCase();
-              if (cNum) {
+              if (cNum && cNum !== 'UNDEFINED' && cNum !== 'NULL') {
                 var uniqueKey = cNum + "_" + hName;
                 if (!cardMap.has(uniqueKey)) {
                   cardMap.set(uniqueKey, {
@@ -489,7 +485,7 @@
                     fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
                     motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
                     units: String(card.units || card.total_units || 'N/A').trim(),
-                    cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : (card.card_type || t.type),
+                    cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : 'WHITE',
                     tableName: t.name
                   });
                 }
@@ -648,7 +644,7 @@
 
       filtered.forEach(function(b) {
         var isDone = (b.status === 'COMPLETED');
-        var cardNo = String(b.card || b.cardNo || b.ration_card_number || '').trim();
+        var cardNo = String(b.card || b.ration_card_number || '').trim();
         
         var cardInfo = null;
         var matchesByCard = globalCardsCache.filter(function(c) { return c.fullCardNumber === cardNo; });
@@ -726,10 +722,23 @@
     }
 
     function isCardCompletedByBooking(cardNum, cardName) {
+      if (!cardNum) return false;
+      var cleanCard = String(cardNum).trim().toUpperCase();
+      var cleanName = String(cardName || '').trim().toUpperCase();
+
       return allBookingsData.some(function(b) {
-        var bCard = String(b.card || b.cardNo || '').trim().toUpperCase();
+        if (b.status !== 'COMPLETED') return false;
+        
+        var bCard = String(b.card || b.ration_card_number || '').trim().toUpperCase();
         var bName = String(b.name || '').trim().toUpperCase();
-        return bCard === cardNum && bName === cardName && b.status === 'COMPLETED';
+        
+        if (bCard && cleanCard) {
+          if (bCard === cleanCard) return true;
+          if (bCard.length >= 4 && cleanCard.length >= 4 && bCard.slice(-4) === cleanCard.slice(-4)) {
+            return bName === cleanName;
+          }
+        }
+        return false;
       });
     }
 
@@ -817,7 +826,7 @@
     async function addNewSlot(e) {
       e.preventDefault();
       var date = document.getElementById('slotDate').value;
-      var label = document.getElementById('slotLabel').value;
+      var label = date;
       var limit = parseInt(document.getElementById('slotLimit').value, 10) || 200;
 
       const { error } = await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
@@ -826,7 +835,6 @@
       } else {
         alert('Naya date slot safaltapoorvak publish ho gaya!');
         document.getElementById('slotDate').value = '';
-        document.getElementById('slotLabel').value = '';
         loadSlots();
       }
     }
@@ -879,7 +887,6 @@
         token_date: date,
         date: date,
         card: cardNo,
-        cardNo: cardNo,
         name: holderName,
         phone: phone,
         token_number: newTokenNo,
@@ -940,7 +947,7 @@
         return;
       }
 
-      const { error } = await supabaseClient.from('bookings').update({ card: newCardNo, cardNo: newCardNo }).eq('id', bookingId);
+      const { error } = await supabaseClient.from('bookings').update({ card: newCardNo }).eq('id', bookingId);
       if (error) {
         alert('Card number update karne mein error aayi: ' + error.message);
       } else {
@@ -961,7 +968,7 @@
         slipCard.classList.remove('red-card-theme');
       }
 
-      var cardNo = String(booking.card || booking.cardNo || booking.ration_card_number || 'N/A').trim();
+      var cardNo = String(booking.card || booking.ration_card_number || 'N/A').trim();
       var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo; });
       if (!cardInfo && cardNo.length >= 4) {
         var last4 = cardNo.slice(-4);
