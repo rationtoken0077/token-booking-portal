@@ -499,6 +499,7 @@
       lucide.createIcons();
     };
 
+    // Instant Realtime WebSocket listener for Live Display & Date sync
     function subscribeAdminLiveSync() {
       supabaseClient
         .channel('admin:live_display')
@@ -841,7 +842,6 @@
 
       filterSelect.value = currentFilter;
       
-      // Fixed: Yeh ab 14 tarikh ko apne aap force nahi karega, sirf wahi select karega jo database mein save hai
       if (savedActiveDate) {
         activeDateSelect.value = savedActiveDate;
       }
