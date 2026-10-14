@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+v<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
@@ -36,6 +36,8 @@
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.95), 0 4px 12px rgba(0, 0, 0, 0.3);
       font-family: 'Poppins', sans-serif;
       border-radius: 0.75rem;
+      min-width: 110px;
+      min-height: 38px;
     }
     .led-red-digits {
       color: #dc2626;
@@ -59,7 +61,6 @@
 
     .custom-input { background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; outline: none; font-family: 'Poppins', sans-serif; }
     .custom-input:focus { border-color: #701a75; background: #ffffff; box-shadow: 0 0 0 3px rgba(112, 26, 117, 0.15); }
-    .custom-input:disabled, .custom-input[readonly] { background: #e2e8f0; color: #475569; cursor: not-allowed; }
     
     .date-box { 
       border: 1.5px solid #cbd5e1; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -81,7 +82,6 @@
       color: #0f172a; border: 2px solid #701a75; position: relative; overflow: hidden;
       font-family: 'Poppins', sans-serif;
     }
-
     .printable-slip.red-card-theme {
       background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
       border: 3px solid #dc2626 !important;
@@ -94,9 +94,8 @@
     .photo-container { width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff; border-radius: 1rem; }
     .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    body.slip-pure-white-mode, body.offline-pure-white { background: #ffffff !important; }
-    body.slip-pure-white-mode .video-background-holder, body.slip-pure-white-mode header,
-    body.offline-pure-white .video-background-holder, body.offline-pure-white header { display: none !important; }
+    body.slip-pure-white-mode { background: #ffffff !important; }
+    body.slip-pure-white-mode .video-background-holder, body.slip-pure-white-mode header { display: none !important; }
   </style>
 </head>
 <body class="flex flex-col items-center min-h-screen pb-8">
@@ -119,6 +118,7 @@
         </div>
       </div>
 
+      <!-- Small Live Token Counter LED Screen (Turns completely blank/black when stopped by admin) -->
       <div id="publicLiveBanner" class="w-full md:w-auto flex items-center justify-center my-1 md:my-0">
         <div class="digital-led-machine px-4 py-1 flex items-center gap-3">
           <div class="text-xl sm:text-2xl font-black font-['Poppins'] tracking-widest led-red-digits" id="publicLiveTokenVal">001</div>
@@ -141,14 +141,6 @@
   </header>
 
   <main class="w-full max-w-md mx-auto px-3 pt-4 relative z-10 my-auto">
-
-    <div id="offlineScreen" class="hidden bg-white p-8 text-center space-y-4 rounded-3xl shadow-none">
-      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full mx-auto flex items-center justify-center">
-        <i data-lucide="ban" class="w-8 h-8"></i>
-      </div>
-      <h2 class="text-2xl font-black text-slate-900 hindi-text">वितरण बंद है</h2>
-      <p class="text-sm font-bold text-slate-600 hindi-text" id="offlineMsg">वितरण बंद है</p>
-    </div>
 
     <div id="bookingScreen" class="premium-card p-4 sm:p-5 space-y-4">
       <div>
@@ -355,7 +347,6 @@
       if (imgElem) { imgElem.crossOrigin = "anonymous"; imgElem.src = RAW_PHOTO_URL; }
       if (modalImgElem) { modalImgElem.crossOrigin = "anonymous"; modalImgElem.src = RAW_PHOTO_URL; }
       
-      checkAdminPortalStatus();
       loadSlotsData();
       loadAllCardsCache();
       subscribeToLiveDisplay();
@@ -370,27 +361,7 @@
       }
     }
 
-    async function checkAdminPortalStatus() {
-      try {
-        const { data } = await supabaseClient.from('settings').select('*').limit(1);
-        if (data && data.length > 0) {
-          var setting = data[0];
-          var isLive = setting.is_live !== undefined ? setting.is_live : (setting.portal_live !== undefined ? setting.portal_live : true);
-          if (isLive === false || isLive === 'false' || isLive === 0) {
-            triggerOfflineMode();
-          }
-        }
-      } catch (e) {}
-    }
-
-    function triggerOfflineMode() {
-      document.getElementById('bookingScreen').classList.add('hidden');
-      document.getElementById('publicLiveBanner').innerHTML = '<div class="text-xs font-bold text-red-500 bg-black px-3 py-1 rounded font-[\'Poppins\']">वितरण बंद है</div>';
-      document.getElementById('offlineMsg').innerText = "वितरण बंद है";
-      document.getElementById('offlineScreen').classList.remove('hidden');
-      document.body.classList.add('offline-pure-white');
-    }
-
+    // Realtime subscription for the small LED display only
     function subscribeToLiveDisplay() {
       supabaseClient
         .channel('public:live_display')
@@ -417,12 +388,9 @@
           dateTextElem.innerText = new Date().toLocaleDateString('hi-IN');
         }
       } else {
-        tokenValElem.innerText = "---";
-        dateTextElem.innerText = "STOPPED";
-        document.getElementById('bookingScreen').classList.add('hidden');
-        document.getElementById('offlineMsg').innerText = "वितरण बंद है";
-        document.getElementById('offlineScreen').classList.remove('hidden');
-        document.body.classList.add('offline-pure-white');
+        // When stopped, ONLY the small LED counter screen becomes completely blank/black (No tokens, no dates)
+        tokenValElem.innerText = "";
+        dateTextElem.innerText = "";
       }
     }
 
@@ -451,7 +419,6 @@
       return clean;
     }
 
-    // Updated Masking function: 21 + XXXXXX + Last 4 digits (e.g. 21XXXXXX2121)
     function maskRationCardNumber(cardStr) {
       if (!cardStr) return '----';
       var clean = String(cardStr).trim();
