@@ -577,7 +577,6 @@
           await supabaseClient.from('live_display').upsert({ id: 1, active_date: dateVal });
         }
       } catch(e) {
-        // Fallback upsert if update throws error
         try {
           await supabaseClient.from('live_display').upsert({ id: 1, active_date: dateVal });
         } catch(err2) {
@@ -842,11 +841,9 @@
 
       filterSelect.value = currentFilter;
       
+      // Fixed: Yeh ab 14 tarikh ko apne aap force nahi karega, sirf wahi select karega jo database mein save hai
       if (savedActiveDate) {
         activeDateSelect.value = savedActiveDate;
-      } else if (allSlotsData.length > 0) {
-        activeDateSelect.value = allSlotsData[0].date;
-        updateActiveDistributionDate(allSlotsData[0].date);
       }
       lucide.createIcons();
     }
