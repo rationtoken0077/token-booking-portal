@@ -102,7 +102,6 @@
 </head>
 <body class="flex flex-col items-center min-h-screen pb-8">
 
-  <!-- पोर्टल बंद होने पर पूरी स्क्रीन सफेद, बैनर और Ban Icon के साथ -->
   <div id="portalClosedScreen" class="fixed inset-0 bg-white z-[99999] hidden flex flex-col items-center justify-center p-6 text-center space-y-4">
     <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-lg">
       <i data-lucide="ban" class="w-10 h-10"></i>
@@ -398,12 +397,20 @@
       lucide.createIcons();
     }
 
-    // 0.1ms Realtime WebSocket Subscription for instant live token counter updates
+    // 🚀 Super-charged Realtime WebSocket Subscription for instant live token & date updates
     function subscribeToLiveDisplay() {
       supabaseClient
         .channel('public:live_display')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'live_display' }, payload => {
           if (payload.new) updatePublicDisplayUI(payload.new);
+        })
+        .subscribe();
+
+      // Slots aur Bookings ke changes par bhi turant slots refresh honge
+      supabaseClient
+        .channel('public:slots_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'slots' }, payload => {
+          loadSlotsData();
         })
         .subscribe();
 
@@ -420,13 +427,13 @@
         var formattedNum = String(data.current_token || '001').padStart(3, '0');
         tokenValElem.innerText = formattedNum;
         if (data.active_date) {
-          dateTextElem.innerText = data.active_date;
+          dateTextElem.innerText = formatDateToHindi(data.active_date);
         } else {
           dateTextElem.innerText = new Date().toLocaleDateString('hi-IN');
         }
       } else {
-        tokenValElem.innerText = "";
-        dateTextElem.innerText = "";
+        tokenValElem.innerText = "001";
+        dateTextElem.innerText = "Live Stopped";
       }
     }
 
@@ -483,7 +490,10 @@
 
             var box = document.createElement('div');
             box.className = "date-box p-3 rounded-xl flex items-center justify-between " + (isFull ? "full" : "available");
-            if (!isFull && index === 0) { box.classList.add('selected'); selectedDate = dateStr; }
+            if (!isFull && (selectedDate === dateStr || (!selectedDate && index === 0))) { 
+              box.classList.add('selected'); 
+              selectedDate = dateStr; 
+            }
 
             box.innerHTML = `
               <div>
