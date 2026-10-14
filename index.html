@@ -102,13 +102,15 @@
 </head>
 <body class="flex flex-col items-center min-h-screen pb-8">
 
-  <!-- अगर एडमिन से पोर्टल बंद किया गया, तो यह पूरा सफेद स्क्रीन वाला बैनर दिखेगा -->
-  <div id="portalClosedScreen" class="fixed inset-0 bg-white z-50 hidden flex flex-col items-center justify-center p-6 text-center space-y-4">
+  <!-- पोर्टल बंद होने पर पूरी स्क्रीन सफेद, बैनर और Ban Icon के साथ -->
+  <div id="portalClosedScreen" class="fixed inset-0 bg-white z-[99999] hidden flex flex-col items-center justify-center p-6 text-center space-y-4">
     <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-lg">
       <i data-lucide="ban" class="w-10 h-10"></i>
     </div>
-    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">वितरण बंद है (Distribution Closed)</h1>
-    <p class="text-sm text-slate-600 max-w-md font-medium">वर्तमान में राशन वितरण और टोकन बुकिंग की प्रक्रिया स्थगित है। कृपया बाद में प्रयास करें।</p>
+    <div class="space-y-1">
+      <h1 class="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight hindi-text">वितरण बंद है</h1>
+      <p class="text-xs sm:text-sm text-slate-400 font-normal hindi-text tracking-wide">कृपया कोटेदार से संपर्क करें</p>
+    </div>
   </div>
 
   <div class="video-background-holder" id="bgVideoContainer">
@@ -129,7 +131,7 @@
         </div>
       </div>
 
-      <!-- Small Live Token Counter LED Screen (Turns completely blank/black when stopped by admin) -->
+      <!-- Small Live Token Counter LED Screen -->
       <div id="publicLiveBanner" class="w-full md:w-auto flex items-center justify-center my-1 md:my-0">
         <div class="digital-led-machine px-4 py-1 flex items-center gap-3">
           <div class="text-xl sm:text-2xl font-black font-['Poppins'] tracking-widest led-red-digits" id="publicLiveTokenVal">001</div>
