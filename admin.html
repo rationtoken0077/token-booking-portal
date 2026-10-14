@@ -17,6 +17,7 @@
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: #0f172a; }
     .done-row { background-color: #f0fdf4 !important; }
+    .done-text { text-decoration: line-through; color: #166534 !important; }
     summary::-webkit-details-marker { display:none; }
     
     .printable-slip { background: #ffffff; color: #0f172a; border: 2px solid #0f172a; font-family: 'Poppins', sans-serif; }
@@ -25,6 +26,11 @@
       border: 3px solid #dc2626 !important;
       box-shadow: 0 20px 35px -5px rgba(220, 38, 38, 0.25) !important;
     }
+    .printable-slip.red-card-theme .slip-header-title { color: #991b1b !important; border-bottom-color: #fca5a5 !important; }
+    .printable-slip.red-card-theme .kotedar-card-box { background: #ffe4e6 !important; border-color: #f87171 !important; }
+    .printable-slip.red-card-theme .token-box-container { background: #ffffff !important; border: 2px dashed #dc2626 !important; }
+    .photo-container { width: 70px; height: 70px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #1e293b; border-radius: 1rem; }
+    .kotedar-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-900 pb-12">
@@ -59,7 +65,7 @@
         <button onclick="switchTab('home')" id="navHomeBtn" title="Home Dashboard" class="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700">
           <i data-lucide="layout-grid" class="w-6 h-6"></i>
         </button>
-        <button onclick="switchTab('tokens')" id="navTokensBtn" title="Token Register" class="w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white">
+        <button onclick="switchTab('tokens')" id="navTokensBtn" title="Token Register & Distribution" class="w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white">
           <i data-lucide="users" class="w-6 h-6"></i>
         </button>
         <button onclick="switchTab('masterTracker')" id="navTrackerBtn" title="Master Pending List" class="w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white">
@@ -103,13 +109,14 @@
       </header>
 
       <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <!-- Baki tabs aur content same rahenge -->
+
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
           <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
             <i data-lucide="tv" class="text-purple-700 w-5 h-5"></i>
             <h2 class="font-bold text-sm text-slate-800">Live Token Counter & Distribution Date Control</h2>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            
             <div class="bg-purple-50 border border-purple-200 px-4 py-3 rounded-2xl flex items-center justify-between">
               <div>
                 <span class="text-[10px] font-bold text-purple-700 uppercase block">Active Display Token</span>
@@ -119,37 +126,397 @@
                 Start
               </button>
             </div>
+
             <div class="md:col-span-2 bg-slate-50 border border-slate-200 px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
-                <label class="block text-xs font-bold text-slate-800">वितरण की तारीख सेट करें:</label>
+                <label class="block text-xs font-bold text-slate-800">वितरण की तारीख सेट करें (Active Date on Display):</label>
+                <p class="text-[11px] text-slate-500">जनता के पोर्टल पर डिजिटल डिस्प्ले के पास यही तारीख दिखेगी</p>
               </div>
-              <select id="activeDistributionDate" onchange="updateActiveDistributionDate(this.value)" class="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 outline-none w-full sm:w-auto">
-                <option value="">-- तारीख चुनें --</option>
-              </select>
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <select id="activeDistributionDate" onchange="updateActiveDistributionDate(this.value)" class="bg-white border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 outline-none w-full sm:w-auto">
+                  <option value="">-- तारीख चुनें --</option>
+                </select>
+              </div>
             </div>
+
           </div>
         </div>
 
         <div id="tabContentHome" class="space-y-6">
-          <p class="text-xs text-slate-500">Dashboard active.</p>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i data-lucide="calendar-plus" class="text-slate-900 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Add New Date Slot</h2>
+              </div>
+
+              <form onsubmit="addNewSlot(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date</label>
+                  <input type="date" id="slotDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Token Limit</label>
+                  <input type="number" id="slotLimit" value="200" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-medium focus:ring-2 focus:ring-slate-900 outline-none">
+                </div>
+                <button type="submit" id="addSlotBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Publish Date Slot
+                </button>
+              </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i data-lucide="user-plus" class="text-slate-900 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Admin Direct Token Booking</h2>
+              </div>
+
+              <form onsubmit="adminDirectBooking(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Select Date Slot</label>
+                  <select id="adminBookingDate" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900">
+                    <option value="">-- Select Date --</option>
+                  </select>
+                </div>
+                
+                <div class="sm:col-span-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2.5">
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">विकल्प 1: 5 अंकों का गुप्त कोड</label>
+                    <input type="text" id="adminSecretCodeInput" maxlength="5" placeholder="XXXXX" class="w-full border border-slate-300 p-2 rounded-xl text-xs font-mono uppercase outline-none bg-white font-['Poppins'] tracking-wider" oninput="adminOnSecretCodeInput(this)">
+                  </div>
+                  <div class="text-center text-[10px] font-bold text-slate-400">--- या (OR) ---</div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">विकल्प 2: 12 अंकों का राशन कार्ड नंबर</label>
+                    <input type="text" id="adminRationNumberInput" maxlength="15" placeholder="21XXXXXXXXXX" class="w-full border border-slate-300 p-2 rounded-xl text-xs font-mono uppercase outline-none bg-white font-['Poppins'] tracking-wider" oninput="adminOnRationCardInput(this)">
+                  </div>
+                </div>
+
+                <div id="adminMultiContainer" class="hidden sm:col-span-2 bg-slate-50 border border-slate-300 p-2.5 rounded-xl space-y-1">
+                  <label class="block text-xs font-bold text-slate-800">Ek se adhik naam mile, kripya chunein:</label>
+                  <select id="adminMultiSelect" onchange="adminSelectMatchedCard(this)" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white font-bold">
+                    <option value="">-- Naam Chunein --</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
+                  <input type="text" id="adminHolderName" placeholder="Card Holder Name" required readonly class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none bg-slate-100 uppercase">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Mobile No</label>
+                  <input type="tel" id="adminPhone" placeholder="XXXXXXXXXX" maxlength="10" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 font-['Poppins'] tracking-wider">
+                </div>
+                <div class="sm:col-span-2 flex gap-2">
+                  <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-xs transition">
+                    Book Token & Generate Slip
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="calendar" class="text-slate-700 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Active Slots & Seat Controls</h2>
+              </div>
+              <span class="text-xs text-slate-500 font-medium" id="slotsCountText">0 Slots Active</span>
+            </div>
+
+            <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
+              <p class="text-xs text-slate-400">Loading active slots...</p>
+            </div>
+          </div>
         </div>
+
+        <div id="tabContentTokens" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                  <i data-lucide="users" class="text-slate-900 w-5 h-5"></i> Customer Booking Register & Details
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Yhi se 'Done' button dabane par token complete hoga aur live display par turant update ho jayega</p>
+              </div>
+
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <label class="text-xs font-bold text-slate-600">Filter Date:</label>
+                <select id="dateFilter" onchange="filterBookingsByDate()" class="bg-white border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl p-2 outline-none focus:ring-2 focus:ring-slate-900">
+                  <option value="ALL">All Dates</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <th class="p-3.5">Status</th>
+                    <th class="p-3.5">Token ID</th>
+                    <th class="p-3.5">Date</th>
+                    <th class="p-3.5">Card Holder Name</th>
+                    <th class="p-3.5">Phone</th>
+                    <th class="p-3.5">Card No.</th>
+                    <th class="p-3.5">Family Details / Update</th>
+                    <th class="p-3.5 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="bookingsTableBody" class="divide-y divide-slate-200 font-medium">
+                  <tr>
+                    <td colspan="8" class="p-6 text-center text-slate-400">Loading bookings...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="tabContentMasterTracker" class="space-y-6 hidden">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                  <i data-lucide="clipboard-list" class="text-red-600 w-5 h-5"></i> Master Card Live Pending Tracker (Red & White)
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Yeh list sahi cards dikha rahi hai jisme naam aur number dono ke anusaar duplicate filter hain.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="masterCardTypeFilter" onchange="renderMasterTracker()" class="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                  <option value="ALL">All Cards (Red + White)</option>
+                  <option value="RED">Red Card Only</option>
+                  <option value="WHITE">White Card Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-red-50 border border-red-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-red-700 uppercase">Red Card Pending</div>
+                <div class="text-xl font-black text-red-900 mt-0.5" id="statRedPending">-</div>
+              </div>
+              <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-emerald-700 uppercase">Red Card Done</div>
+                <div class="text-xl font-black text-emerald-900 mt-0.5" id="statRedDone">-</div>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-blue-700 uppercase">White Card Pending</div>
+                <div class="text-xl font-black text-blue-900 mt-0.5" id="statWhitePending">-</div>
+              </div>
+              <div class="bg-slate-100 border border-slate-200 p-3 rounded-2xl">
+                <div class="text-[11px] font-bold text-slate-700 uppercase">White Card Done</div>
+                <div class="text-xl font-black text-slate-900 mt-0.5" id="statWhiteDone">-</div>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <input type="text" id="masterSearchInput" oninput="renderMasterTracker()" placeholder="Naam या Card Number से खोजें..." class="w-full border border-slate-300 p-3 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase font-['Poppins']">
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <th class="p-3.5">Card Type</th>
+                    <th class="p-3.5">Ration Card No.</th>
+                    <th class="p-3.5">Holder Name</th>
+                    <th class="p-3.5">Father / Husband</th>
+                    <th class="p-3.5">Units</th>
+                    <th class="p-3.5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="masterTrackerTableBody" class="divide-y divide-slate-200 font-medium">
+                  <tr>
+                    <td colspan="6" class="p-6 text-center text-slate-400">Loading master cards...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="tabContentCardManager" class="space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i data-lucide="plus-circle" class="text-purple-700 w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-800">Naya Card & Secret Code Jodein</h2>
+              </div>
+              <form onsubmit="addNewCardRecord(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Card Type Chunein</label>
+                  <select id="newCardType" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-900 font-bold">
+                    <option value="red_card">Red Card (लाल कार्ड)</option>
+                    <option value="white_card">White Card (सफेद कार्ड)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Ration Card No</label>
+                  <input type="text" id="newCardNumber" placeholder="21xxxxxxxxxx" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-mono uppercase outline-none font-['Poppins'] tracking-wider">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Secret Code (5 Digit)</label>
+                  <input type="text" id="newSecretCode" placeholder="XXXXX" required maxlength="5" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-mono uppercase outline-none font-['Poppins'] tracking-wider">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Holder Name</label>
+                  <input type="text" id="newHolderName" placeholder="Full Name" required class="w-full border border-slate-300 p-2.5 rounded-xl text-xs uppercase outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Father / Husband Name</label>
+                  <input type="text" id="newFatherName" placeholder="Father/Husband Name" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs uppercase outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Units</label>
+                  <input type="text" id="newUnits" placeholder="Units count" value="4" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs outline-none">
+                </div>
+                <button type="submit" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold p-2.5 rounded-xl text-xs transition shadow-sm">
+                  Card Database Mein Save Karein
+                </button>
+              </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="key-round" class="text-slate-800 w-5 h-5"></i>
+                  <h2 class="font-bold text-sm text-slate-800">Sabhi Cards aur Secret Codes Manage Karein</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <select id="managerTableFilter" onchange="renderCardManagerTable()" class="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl p-2 outline-none">
+                    <option value="ALL">Red + White Both</option>
+                    <option value="red_card">Red Card Table</option>
+                    <option value="white_card">White Card Table</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <input type="text" id="managerSearchInput" oninput="renderCardManagerTable()" placeholder="Naam, Card No ya Secret Code से खोजें..." class="w-full border border-slate-300 p-3 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900 uppercase font-['Poppins']">
+              </div>
+
+              <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                      <th class="p-3">Table</th>
+                      <th class="p-3">Secret Code</th>
+                      <th class="p-3">Card No.</th>
+                      <th class="p-3">Holder Name</th>
+                      <th class="p-3">Father/Husband</th>
+                      <th class="p-3">Units</th>
+                      <th class="p-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cardManagerTableBody" class="divide-y divide-slate-200 font-medium">
+                    <tr>
+                      <td colspan="7" class="p-6 text-center text-slate-400">Loading records...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </main>
+    </div>
+  </div>
+
+  <div id="adminSlipModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4 relative my-auto">
+      <button onclick="closeAdminSlipModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 z-10">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div id="adminSlipCardElement" class="printable-slip rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <h2 class="slip-header-title text-center text-lg font-black tracking-tight text-slate-900 mb-2 border-b-2 pb-1.5 border-slate-200 font-['Poppins']">
+          Appointment Token Slip
+        </h2>
+
+        <div class="kotedar-card-box bg-slate-100 rounded-xl p-3 flex items-center gap-3 mb-3 border border-slate-300">
+          <div class="photo-container border-2 border-slate-400 shadow-sm flex-shrink-0" style="width: 55px; height: 55px;">
+            <img id="adminModalKotedarImg" class="kotedar-photo" crossorigin="anonymous" alt="Kotedar">
+          </div>
+          <div>
+            <div class="text-red-600 font-black text-xs tracking-wide uppercase leading-tight font-['Poppins']">KOTEDAR - KAPIL DEV YADAV</div>
+            <div class="text-black font-extrabold text-[11px] tracking-widest mt-0.5 font-['Poppins']">GUJARPAR</div>
+          </div>
+        </div>
+
+        <div class="token-box-container border-2 border-dashed border-slate-900 rounded-xl p-3 text-center my-2 bg-slate-50">
+          <p class="text-[10px] font-black tracking-widest uppercase text-slate-700 mb-0.5 font-['Poppins']">TOKEN NUMBER</p>
+          <div class="text-2xl sm:text-3xl font-black tracking-wider text-black mb-0.5 font-['Poppins']" id="admSlipTokenNo">-</div>
+          <div class="text-xs font-black text-slate-900 font-['Poppins'] tracking-wider" id="admSlipRationLastDigits">----</div>
+        </div>
+
+        <div class="text-xs space-y-2 mt-3 text-slate-900 font-semibold px-1">
+          <div class="text-center bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+            <span class="text-slate-700 font-bold block text-[10px]">Expected Time:</span>
+            <span class="text-slate-950 font-black text-sm block mt-0.5">06:30 AM से 08:00 AM तक</span>
+          </div>
+
+          <div class="pt-2 space-y-1.5 border-t border-slate-200 text-slate-900 text-[11px]">
+            <p class="flex justify-between font-['Poppins']"><strong>Appointment Date:</strong> <span id="admSlipDate" class="font-bold text-black font-['Poppins']">-</span></p>
+            <p class="flex justify-between font-['Poppins']"><strong>Ration Card No:</strong> <span id="admSlipRationNo" class="font-bold text-black font-['Poppins'] tracking-wider">-</span></p>
+            <p class="flex justify-between font-['Poppins']"><strong>Name:</strong> <span id="admSlipName" class="font-bold text-black font-['Poppins']">-</span></p>
+            <p class="flex justify-between font-['Poppins']"><strong>Mobile:</strong> <span id="admSlipPhone" class="font-bold text-black font-['Poppins']">-</span></p>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="downloadAdminSlipAsJPG()" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-md transition">
+        <i data-lucide="image-down" class="w-4 h-4"></i> JPG Download Karein
+      </button>
     </div>
   </div>
 
   <script>
     const ADMIN_SECRET_PASSWORD = "kapil2026"; 
+    const RAW_PHOTO_URL = "https://cdn.phototourl.com/free/2026-09-16-3eaf7eb8-58ee-4aa7-b082-cbf02291f8af.jpg";
+
     const SUPABASE_URL = "https://muppmxhvcuujyswhurhf.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_gaL0eMS5A2RcV8Ig6IidaA_M2Ak7LwO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    var allBookingsData = [];
+    var allSlotsData = [];
+    var globalCardsCache = [];
+    var rawManagerRecords = [];
+
     window.onload = function() {
+      var imgUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(RAW_PHOTO_URL.replace("https://", "")) + "&w=200&h=200&fit=cover";
+      document.getElementById('adminModalKotedarImg').src = imgUrl;
+
       if (sessionStorage.getItem("adminAuth") === "true") {
         unlockAdminPanel();
       }
       checkPortalLiveStatusState();
+      fetchAdminLiveState();
+      subscribeAdminLiveSync();
       lucide.createIcons();
     };
+
+    function subscribeAdminLiveSync() {
+      supabaseClient
+        .channel('admin:live_display')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'live_display' }, payload => {
+          if (payload.new) {
+            document.getElementById('adminLiveDisplayToken').innerText = String(payload.new.current_token || '001').padStart(3, '0');
+            var btn = document.getElementById('adminDisplayToggleBtn');
+            if (payload.new.is_running) {
+              btn.innerText = "Stop";
+              btn.className = "bg-red-600 hover:bg-red-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition";
+            } else {
+              btn.innerText = "Start";
+              btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition";
+            }
+          }
+        })
+        .subscribe();
+    }
 
     async function checkPortalLiveStatusState() {
       try {
@@ -171,24 +538,842 @@
       } catch(e) {}
     }
 
+    async function fetchAdminLiveState() {
+      const { data } = await supabaseClient.from('live_display').select('*').eq('id', 1).single();
+      if (data) {
+        document.getElementById('adminLiveDisplayToken').innerText = String(data.current_token || '001').padStart(3, '0');
+        var btn = document.getElementById('adminDisplayToggleBtn');
+        if (data.is_running) {
+          btn.innerText = "Stop";
+          btn.className = "bg-red-600 hover:bg-red-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition";
+        } else {
+          btn.innerText = "Start";
+          btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs shadow-sm transition";
+        }
+        if (data.active_date) {
+          var dateSelect = document.getElementById('activeDistributionDate');
+          if(dateSelect) dateSelect.value = data.active_date;
+        }
+      }
+    }
+
+    async function toggleLiveDisplayState() {
+      const { data } = await supabaseClient.from('live_display').select('*').eq('id', 1).single();
+      if (!data) return;
+      let newState = !data.is_running;
+      await supabaseClient.from('live_display').update({ is_running: newState }).eq('id', 1);
+      fetchAdminLiveState();
+    }
+
+    async function updateActiveDistributionDate(dateVal) {
+      if (!dateVal) return;
+      try {
+        await supabaseClient.from('live_display').update({ active_date: dateVal }).eq('id', 1);
+      } catch(e) {}
+    }
+
+    function switchTab(tabName) {
+      var homeTab = document.getElementById('tabContentHome');
+      var tokensTab = document.getElementById('tabContentTokens');
+      var masterTab = document.getElementById('tabContentMasterTracker');
+      var managerTab = document.getElementById('tabContentCardManager');
+
+      var btnHome = document.getElementById('navHomeBtn');
+      var btnTokens = document.getElementById('navTokensBtn');
+      var btnTracker = document.getElementById('navTrackerBtn');
+      var btnManager = document.getElementById('navManagerBtn');
+
+      homeTab.classList.add('hidden');
+      tokensTab.classList.add('hidden');
+      masterTab.classList.add('hidden');
+      if(managerTab) managerTab.classList.add('hidden');
+
+      var defaultBtnClass = 'w-12 h-12 rounded-2xl bg-transparent text-slate-400 flex items-center justify-center transition hover:bg-slate-800 hover:text-white';
+      var activeBtnClass = 'w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-md transition hover:bg-slate-700 border border-slate-700';
+
+      btnHome.className = defaultBtnClass;
+      btnTokens.className = defaultBtnClass;
+      btnTracker.className = defaultBtnClass;
+      if(btnManager) btnManager.className = defaultBtnClass;
+
+      if (tabName === 'home') {
+        homeTab.classList.remove('hidden');
+        btnHome.className = activeBtnClass;
+      } else if (tabName === 'tokens') {
+        tokensTab.classList.remove('hidden');
+        btnTokens.className = activeBtnClass;
+      } else if (tabName === 'masterTracker') {
+        masterTab.classList.remove('hidden');
+        btnTracker.className = activeBtnClass;
+        renderMasterTracker();
+      } else if (tabName === 'cardManager') {
+        if(managerTab) managerTab.classList.remove('hidden');
+        if(btnManager) btnManager.className = activeBtnClass;
+        renderCardManagerTable();
+      }
+    }
+
     function verifyAdminPassword(e) {
       e.preventDefault();
-      if (document.getElementById('adminPasswordInput').value === ADMIN_SECRET_PASSWORD) {
+      var pass = document.getElementById('adminPasswordInput').value;
+      if (pass === ADMIN_SECRET_PASSWORD) {
         sessionStorage.setItem("adminAuth", "true");
         unlockAdminPanel();
       } else {
-        alert('Galat password!');
+        alert('Galat password! Kripya sahi password darj karein.');
+        document.getElementById('adminPasswordInput').value = '';
       }
     }
 
     function unlockAdminPanel() {
       document.getElementById('authOverlay').style.display = 'none';
       document.getElementById('adminMainContent').classList.remove('hidden');
+      loadAllData();
     }
 
     function logoutAdmin() {
       sessionStorage.removeItem("adminAuth");
       location.reload();
+    }
+
+    async function loadAllData() {
+      await fetchGlobalCardsCache();
+      await loadSlots();
+      await loadBookings();
+      renderMasterTracker();
+      renderCardManagerTable();
+      checkPortalLiveStatusState();
+      fetchAdminLiveState();
+    }
+
+    async function fetchGlobalCardsCache() {
+      var cardMap = new Map();
+      rawManagerRecords = [];
+      const tables = [
+        { name: 'red_card', type: 'RED' },
+        { name: 'duplicate', type: 'RED' },
+        { name: 'white_card', type: 'WHITE' },
+        { name: 'cards', type: 'WHITE' }
+      ];
+
+      for (let t of tables) {
+        try {
+          const { data, error } = await supabaseClient.from(t.name).select('*');
+          if (!error && data) {
+            data.forEach(function(card) {
+              var cNum = String(card.card_number || card.ration_card_number || card.number || '').trim().toUpperCase();
+              var hName = String(card.holder_name || card.name || 'N/A').trim().toUpperCase();
+              var sCode = String(card.secret_code || '').trim();
+              
+              rawManagerRecords.push({
+                id: card.id,
+                tableName: t.name,
+                fullCardNumber: cNum,
+                secretCode: sCode,
+                holderName: hName,
+                fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
+                motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
+                units: String(card.units || card.total_units || 'N/A').trim(),
+                cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : 'WHITE'
+              });
+
+              if (cNum && cNum !== 'UNDEFINED' && cNum !== 'NULL') {
+                var uniqueKey = cNum + "_" + hName;
+                if (!cardMap.has(uniqueKey)) {
+                  cardMap.set(uniqueKey, {
+                    id: card.id,
+                    tableName: t.name,
+                    secretCode: sCode,
+                    fullCardNumber: cNum,
+                    holderName: hName,
+                    fatherHusbandName: String(card.father_husband_name || card.fatherName || card.husband_name || 'N/A').trim(),
+                    motherName: String(card.mother_name || card.motherName || 'N/A').trim(),
+                    units: String(card.units || card.total_units || 'N/A').trim(),
+                    cardType: (t.name === 'red_card' || t.name === 'duplicate') ? 'RED' : 'WHITE'
+                  });
+                }
+              }
+            });
+          }
+        } catch (err) {}
+      }
+      globalCardsCache = Array.from(cardMap.values());
+    }
+
+    function searchCardsFlexible(inputQuery) {
+      var clean = String(inputQuery).trim().toUpperCase();
+      if (!clean) return [];
+      var matches = [];
+
+      globalCardsCache.forEach(function(card) {
+        if (clean.length === 5 && card.secretCode === clean) {
+          matches.push(card);
+        } else if (card.fullCardNumber === clean || card.fullCardNumber.endsWith(clean)) {
+          matches.push(card);
+        }
+      });
+      return matches;
+    }
+
+    function adminOnSecretCodeInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
+      var code = input.value;
+      if (code.length > 0) {
+        document.getElementById('adminRationNumberInput').value = '';
+      }
+      processAdminCardSearch(code);
+    }
+
+    function adminOnRationCardInput(input) {
+      input.value = input.value.toUpperCase();
+      var val = input.value;
+      if (val.length > 0) {
+        document.getElementById('adminSecretCodeInput').value = '';
+      }
+      processAdminCardSearch(val);
+    }
+
+    function processAdminCardSearch(query) {
+      var nameInput = document.getElementById('adminHolderName');
+      var multiContainer = document.getElementById('adminMultiContainer');
+      var multiSelect = document.getElementById('adminMultiSelect');
+
+      multiContainer.classList.add('hidden');
+      multiSelect.innerHTML = '<option value="">-- Naam Chunein --</option>';
+      nameInput.value = '';
+
+      if (query.length >= 3) {
+        let matches = searchCardsFlexible(query);
+        if (matches.length > 0) {
+          if (matches.length === 1) {
+            nameInput.value = matches[0].holderName;
+          } else {
+            multiContainer.classList.remove('hidden');
+            matches.forEach(function(item, idx) {
+              var opt = document.createElement('option');
+              opt.value = JSON.stringify(item);
+              opt.textContent = item.holderName + ' (' + item.fullCardNumber + ' | Code: ' + (item.secretCode || 'N/A') + ')';
+              multiSelect.appendChild(opt);
+            });
+          }
+        }
+      }
+    }
+
+    function adminSelectMatchedCard(sel) {
+      if (sel.value !== "") {
+        var cardObj = JSON.parse(sel.value);
+        document.getElementById('adminHolderName').value = cardObj.holderName;
+        if (cardObj.secretCode) {
+          document.getElementById('adminSecretCodeInput').value = cardObj.secretCode;
+        }
+        document.getElementById('adminRationNumberInput').value = cardObj.fullCardNumber;
+      }
+    }
+
+    async function loadSlots() {
+      const { data, error } = await supabaseClient.from('slots').select('*').order('date', { ascending: true });
+      if (error) return;
+
+      allSlotsData = data || [];
+      var slotsContainer = document.getElementById('slotsContainer');
+      var filterSelect = document.getElementById('dateFilter');
+      var adminBookingDate = document.getElementById('adminBookingDate');
+      var activeDateSelect = document.getElementById('activeDistributionDate');
+      var slotsCountText = document.getElementById('slotsCountText');
+      
+      slotsContainer.innerHTML = '';
+      var currentFilter = filterSelect.value;
+      var currentActiveDate = activeDateSelect.value;
+
+      filterSelect.innerHTML = '<option value="ALL">All Dates</option>';
+      adminBookingDate.innerHTML = '<option value="">-- Select Date --</option>';
+      activeDateSelect.innerHTML = '<option value="">-- तारीख चुनें --</option>';
+      slotsCountText.innerText = allSlotsData.length + " Slots Active";
+
+      if (allSlotsData.length === 0) {
+        slotsContainer.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No slots created yet.</p>';
+        return;
+      }
+
+      allSlotsData.forEach(function(slot) {
+        var booked = slot.booked_count || 0;
+        var limit = slot.limit_count || 200;
+
+        var card = document.createElement('div');
+        card.className = 'p-3 rounded-2xl border border-slate-200 bg-slate-50 flex justify-between items-center hover:border-slate-300 transition';
+        card.innerHTML = 
+          '<div>' +
+            '<div class="font-bold text-slate-900 text-xs">' + (slot.label || slot.date) + '</div>' +
+            '<div class="text-[11px] text-slate-500 font-medium">Code: ' + slot.date + ' | <span class="text-slate-900 font-bold">' + booked + '/' + limit + ' Booked</span></div>' +
+          '</div>' +
+          '<button onclick="deleteSlot(\'' + slot.date + '\')" title="Delete Date Slot" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition">' +
+            '<i data-lucide="trash-2" class="w-4 h-4"></i>' +
+          '</button>';
+        slotsContainer.appendChild(card);
+
+        var opt = document.createElement('option');
+        opt.value = slot.date;
+        opt.innerText = (slot.label || slot.date);
+        filterSelect.appendChild(opt);
+
+        var opt2 = opt.cloneNode(true);
+        adminBookingDate.appendChild(opt2);
+
+        var opt3 = opt.cloneNode(true);
+        activeDateSelect.appendChild(opt3);
+      });
+
+      filterSelect.value = currentFilter;
+      if (currentActiveDate) {
+        activeDateSelect.value = currentActiveDate;
+      } else if (allSlotsData.length > 0) {
+        activeDateSelect.value = allSlotsData[0].date;
+        updateActiveDistributionDate(allSlotsData[0].date);
+      }
+      lucide.createIcons();
+    }
+
+    function getDevanagariFirstLetterEnglish(word) {
+      if (!word) return 'T';
+      var char = word.charAt(0);
+      var map = {
+        'अ': 'A', 'आ': 'A', 'इ': 'I', 'ई': 'I', 'उ': 'U', 'ऊ': 'U', 'ऋ': 'R', 'ए': 'E', 'ऐ': 'A', 'ओ': 'O', 'औ': 'A',
+        'क': 'K', 'ख': 'K', 'ग': 'G', 'घ': 'G', 'ङ': 'N', 'च': 'C', 'छ': 'C', 'ज': 'J', 'झ': 'J', 'ञ': 'N',
+        'ट': 'T', 'ठ': 'T', 'ड': 'D', 'ढ': 'D', 'ण': 'N', 'त': 'T', 'थ': 'T', 'द': 'D', 'ध': 'D', 'न': 'N',
+        'प': 'P', 'फ': 'P', 'ब': 'B', 'भ': 'B', 'म': 'M', 'य': 'Y', 'र': 'R', 'ल': 'L', 'व': 'V', 'श': 'S', 'ष': 'S', 'स': 'S', 'ह': 'H'
+      };
+      return map[char] || (/[a-zA-Z]/.test(char) ? char.toUpperCase() : 'T');
+    }
+
+    function getNameInitials(fullName) {
+      if (!fullName) return 'TK';
+      var parts = fullName.trim().split(/\s+/);
+      var firstInitial = getDevanagariFirstLetterEnglish(parts[0]);
+      var secondInitial = parts.length > 1 ? getDevanagariFirstLetterEnglish(parts[parts.length - 1]) : '';
+      return (firstInitial + secondInitial).toUpperCase();
+    }
+
+    async function loadBookings() {
+      const { data, error } = await supabaseClient.from('bookings').select('*').order('id', { ascending: false });
+      allBookingsData = (!error && data) ? data : [];
+      filterBookingsByDate();
+      renderMasterTracker();
+    }
+
+    function filterBookingsByDate() {
+      var selectedDate = document.getElementById('dateFilter').value;
+      var tbody = document.getElementById('bookingsTableBody');
+      tbody.innerHTML = '';
+
+      var filtered = allBookingsData;
+      if (selectedDate !== 'ALL') {
+        filtered = allBookingsData.filter(function(b) { return b.token_date === selectedDate || b.date === selectedDate; });
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-medium">No booking records found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(function(b) {
+        var isDone = (b.status === 'COMPLETED');
+        var cardNo = String(b.card || b.ration_card_number || '').trim();
+        
+        var cardInfo = null;
+        var matchesByCard = globalCardsCache.filter(function(c) { return c.fullCardNumber === cardNo || c.secretCode === cardNo; });
+
+        if (matchesByCard.length === 1) {
+          cardInfo = matchesByCard[0];
+        } else if (matchesByCard.length > 1) {
+          var bookingName = (b.name || '').trim().toUpperCase();
+          cardInfo = matchesByCard.find(function(c) { return c.holderName === bookingName; });
+          if (!cardInfo) { cardInfo = matchesByCard[0]; }
+        } else {
+          if (cardNo) {
+            var last4 = cardNo.slice(-4);
+            var matchesByLast4 = globalCardsCache.filter(function(c) { return c.fullCardNumber.endsWith(last4) || c.secretCode === cardNo; });
+            if (matchesByLast4.length === 1) {
+              cardInfo = matchesByLast4[0];
+            } else if (matchesByLast4.length > 1) {
+              var bookingName2 = (b.name || '').trim().toUpperCase();
+              cardInfo = matchesByLast4.find(function(c) { return c.holderName === bookingName2; });
+              if (!cardInfo) { cardInfo = matchesByLast4[0]; }
+            }
+          }
+        }
+
+        if (!cardInfo) {
+          cardInfo = { holderName: b.name || 'N/A', fatherHusbandName: 'N/A', motherName: 'N/A', units: 'N/A', cardType: 'WHITE' };
+        }
+
+        var initials = getNameInitials(cardInfo.holderName || b.name);
+        var formattedNum = String(b.token_number || b.id || '1').padStart(3, '0');
+        var fullToken = initials + '-' + formattedNum;
+
+        var tr = document.createElement('tr');
+        tr.className = isDone ? 'done-row transition' : 'hover:bg-slate-50 transition';
+
+        tr.innerHTML = 
+          '<td class="p-3.5">' +
+            (isDone ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md"><i data-lucide="check-circle" class="w-3 h-3"></i> Completed</span>' 
+                    : '<span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span>') +
+          '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + fullToken + '</td>' +
+          '<td class="p-3.5 text-slate-600 font-medium">' + (b.token_date || b.date || '-') + '</td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + cardInfo.holderName + '</td>' +
+          '<td class="p-3.5 text-slate-600">' + (b.phone || 'N/A') + '</td>' +
+          '<td class="p-3.5 font-mono text-slate-700 font-bold">' + (cardNo || 'N/A') + '</td>' +
+          '<td class="p-3.5">' +
+            '<details class="cursor-pointer">' +
+              '<summary class="text-slate-900 font-semibold hover:underline flex items-center gap-1 text-[11px]"><i data-lucide="chevron-down" class="w-3 h-3"></i> View Details / Update</summary>' +
+              '<div class="mt-2 p-3 bg-slate-100 border border-slate-200 rounded-xl text-[11px] space-y-1.5 font-sans shadow-inner">' +
+                '<p><b>Holder Name:</b> ' + cardInfo.holderName + '</p>' +
+                '<p><b>Father/Husband:</b> ' + cardInfo.fatherHusbandName + '</p>' +
+                '<p><b>Mother Name:</b> ' + cardInfo.motherName + '</p>' +
+                '<p><b>Units:</b> <span class="bg-slate-200 text-slate-900 px-1 py-0.5 rounded font-bold">' + cardInfo.units + ' Units</span></p>' +
+                '<hr class="border-slate-300 my-1.5">' +
+                '<div class="space-y-1 pt-0.5">' +
+                  '<label class="block font-bold text-slate-700">Asli card number bharein:</label>' +
+                  '<input type="text" id="up-card-' + b.id + '" value="' + cardNo + '" class="w-full p-1.5 border border-slate-300 rounded-lg font-mono text-xs uppercase bg-white">' +
+                  '<button onclick="quickUpdateCard(' + b.id + ')" class="mt-1.5 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-1 px-2 rounded-lg text-xs transition">Supabase mein save karein</button>' +
+                '</div>' +
+              '</div>' +
+            '</details>' +
+          '</td>' +
+          '<td class="p-3.5 text-center flex items-center justify-center gap-1.5">' +
+            '<button onclick=\'showAdminSlip(' + JSON.stringify(b).replace(/'/g, "&apos;") + ', ' + (cardInfo.cardType === 'RED') + ')\' class="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-lg text-[11px]" title="View Slip"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>' +
+            '<button onclick="announceTokenShuddhHindi(\'' + fullToken + '\', ' + (b.token_number || 0) + ')" class="bg-purple-600 hover:bg-purple-700 text-white p-1 rounded-lg text-[11px]" title="Shuddh Hindi Audio"><i data-lucide="volume-2" class="w-3.5 h-3.5"></i></button>' +
+            (isDone ? '<button onclick="toggleStatus(' + (b.id || 0) + ', \'PENDING\')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2 py-1 rounded-lg text-[11px] transition">Undo</button>'
+                    : '<button onclick="markTokenDoneAndSync(' + (b.id || 0) + ', ' + (b.token_number || 1) + ', \'COMPLETED\')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1 rounded-lg text-[11px] inline-flex items-center gap-1 transition shadow-sm"><i data-lucide="check" class="w-3 h-3"></i> Done</button>') +
+            '<button onclick="deleteBooking(' + (b.id || 0) + ')" class="bg-red-100 hover:bg-red-200 text-red-700 p-1 rounded-lg text-[11px]" title="Delete Booking"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    async function markTokenDoneAndSync(bookingId, tokenNum, newStatus) {
+      try {
+        let formattedToken = String(tokenNum).padStart(3, '0');
+        
+        const { error: bErr } = await supabaseClient.from('bookings').update({ status: newStatus }).eq('id', bookingId);
+        if (bErr) throw bErr;
+
+        const { error: lErr } = await supabaseClient.from('live_display').upsert({ id: 1, current_token: formattedToken, is_running: true, updated_at: new Date() });
+        if (lErr) throw lErr;
+
+        document.getElementById('adminLiveDisplayToken').innerText = formattedToken;
+        loadBookings();
+      } catch (err) {
+        alert("Done update error: " + err.message);
+      }
+    }
+
+    async function toggleStatus(bookingId, newStatus) {
+      const { error } = await supabaseClient.from('bookings').update({ status: newStatus }).eq('id', bookingId);
+      if (error) {
+        alert('Status update karne mein error aayi: ' + error.message);
+      } else {
+        loadBookings();
+      }
+    }
+
+    function announceTokenShuddhHindi(fullToken, tokenNumber) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      
+      var num = parseInt(tokenNumber, 10);
+      if (isNaN(num) || num === 0) {
+        var match = String(fullToken).match(/(\d+)$/);
+        num = match ? parseInt(match[1], 10) : 1;
+      }
+
+      var hindiNumStr = convertNumberToHindiWords(num);
+      var speechText = "टोकन नंबर " + hindiNumStr + "। कृपया राशन प्राप्त करने के लिए काउंटर पर आएं।";
+
+      var utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.lang = 'hi-IN';
+      utterance.rate = 0.85; 
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function convertNumberToHindiWords(n) {
+      if (n === 0) return "शून्य";
+      const units = ["", "एक", "दो", "तीन", "चार", "पाँच", "छः", "सात", "आठ", "नौ", "दस", "ग्यारह", "बारह", "तेरह", "चौदह", "पंद्रह", "सोलह", "सत्रह", "अठारह", "उन्नीस"];
+      const tens = ["", "", "बीस", "तीस", "चालीस", "पचास", "साठ", "सत्तर", "अस्सी", "नब्बे"];
+      const tensWords = ["", "", "बीस", "इक्कीस", "बाईस", "तेईस", "चौबीस", "पच्चीस", "छब्बीस", "सत्ताईस", "अट्ठाईस", "उनतीस", "तीस", "इकतीस", "बत्तीस", "तैंतीस", "चौंतीस", "पैंतीस", "छत्तीस", "सैंतीस", "अड़तीस", "उनतालीस", "चालीस", "इकतालीस", "बयालीस", "तैंतालीस", "चौंतालीस", "पैंतालीस", "छियालीस", "सैंतालीस", "अड़तालीस", "उनचास", "पचास", "इक्यावन", "बावन", "तिरपन", "चौवन", "पचपन", "छप्पन", "सत्तावन", "अट्ठावन", "उनसठ", "साठ", "इकसठ", "बासठ", "तिरसठ", "चौंसठ", "पैंसठ", "छियासठ", "सड़सठ", "अड़सठ", "उनहत्तर", "सत्तर", "इकहत्तर", "बहत्तर", "तिरहत्तर", "चौहत्तर", "पचहत्तर", "छिहत्तर", "सत्तर", "अठहत्तर", "उन्यासी", "अस्सी", "इक्यासी", "बयासी", "तिरासी", "चौरासी", "पचासी", "छियासी", "सतासी", "अट्ठासी", "नवासी", "नब्बे", "इक्यानवे", "बानवे", "तिरानवे", "चौरानवे", "पचानवे", "छियानवे", "सताानवे", "अट्ठानवे", "निन्यानवे"];
+
+      if (n < 20) return units[n];
+      if (n < 100) return tensWords[n] || (tens[Math.floor(n / 10)] + " " + units[n % 10]);
+      if (n < 1000) {
+        let h = Math.floor(n / 100);
+        let rem = n % 100;
+        return units[h] + " सौ " + (rem > 0 ? convertNumberToHindiWords(rem) : "");
+      }
+      return String(n);
+    }
+
+    function isCardCompletedByBooking(cardNum, cardName) {
+      if (!cardNum) return false;
+      var cleanCard = String(cardNum).trim().toUpperCase();
+      var cleanName = String(cardName || '').trim().toUpperCase();
+
+      return allBookingsData.some(function(b) {
+        if (b.status !== 'COMPLETED') return false;
+        var bCard = String(b.card || b.ration_card_number || '').trim().toUpperCase();
+        var bName = String(b.name || '').trim().toUpperCase();
+        if (bCard && cleanCard) {
+          if (bCard === cleanCard) return true;
+          if (bCard.length >= 4 && cleanCard.length >= 4 && bCard.slice(-4) === cleanCard.slice(-4)) {
+            return bName === cleanName;
+          }
+        }
+        return false;
+      });
+    }
+
+    function renderMasterTracker() {
+      var tbody = document.getElementById('masterTrackerTableBody');
+      var typeFilter = document.getElementById('masterCardTypeFilter').value;
+      var searchQuery = document.getElementById('masterSearchInput').value.trim().toUpperCase();
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      var redTotal = 0, redDoneCount = 0;
+      var whiteTotal = 0, whiteDoneCount = 0;
+
+      globalCardsCache.forEach(function(c) {
+        var isDone = isCardCompletedByBooking(c.fullCardNumber, c.holderName);
+        if (c.cardType === 'RED') {
+          redTotal++;
+          if (isDone) redDoneCount++;
+        } else {
+          whiteTotal++;
+          if (isDone) whiteDoneCount++;
+        }
+      });
+
+      document.getElementById('statRedPending').innerText = (redTotal - redDoneCount) + ' / ' + redTotal;
+      document.getElementById('statRedDone').innerText = redDoneCount;
+      document.getElementById('statWhitePending').innerText = (whiteTotal - whiteDoneCount) + ' / ' + whiteTotal;
+      document.getElementById('statWhiteDone').innerText = whiteDoneCount;
+
+      var filteredCards = globalCardsCache.filter(function(c) {
+        if (isCardCompletedByBooking(c.fullCardNumber, c.holderName)) return false;
+        if (typeFilter !== 'ALL' && c.cardType !== typeFilter) return false;
+        if (searchQuery) {
+          var matchCard = c.fullCardNumber.includes(searchQuery);
+          var matchName = c.holderName.includes(searchQuery);
+          var matchCode = (c.secretCode || '').includes(searchQuery);
+          if (!matchCard && !matchName && !matchCode) return false;
+        }
+        return true;
+      });
+
+      if (filteredCards.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-medium">Sabhi ration card holders ka ration distribution complete ho chuka hai!</td></tr>';
+        return;
+      }
+
+      filteredCards.forEach(function(c) {
+        var isRed = (c.cardType === 'RED');
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+
+        tr.innerHTML = 
+          '<td class="p-3.5">' +
+            (isRed ? '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded-md font-bold text-[10px]">Red Card</span>' 
+                   : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-bold text-[10px]">White Card</span>') +
+          '</td>' +
+          '<td class="p-3.5 font-mono font-bold text-slate-800">' + c.fullCardNumber + ' <span class="text-xs text-purple-700">(' + (c.secretCode || 'No Code') + ')</span></td>' +
+          '<td class="p-3.5 font-bold text-slate-900">' + c.holderName + '</td>' +
+          '<td class="p-3.5 text-slate-600">' + c.fatherHusbandName + '</td>' +
+          '<td class="p-3.5"><span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded font-bold">' + c.units + '</span></td>' +
+          '<td class="p-3.5 text-center">' +
+            '<span class="text-amber-700 font-bold bg-amber-100 px-2.5 py-1 rounded-xl text-[10px]">Pending</span>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function renderCardManagerTable() {
+      var tbody = document.getElementById('cardManagerTableBody');
+      var filterVal = document.getElementById('managerTableFilter').value;
+      var searchVal = document.getElementById('managerSearchInput').value.trim().toUpperCase();
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      var filtered = rawManagerRecords.filter(function(r) {
+        if (filterVal !== 'ALL' && r.tableName !== filterVal) return false;
+        if (searchVal) {
+          var m1 = r.fullCardNumber.includes(searchVal);
+          var m2 = r.holderName.includes(searchVal);
+          var m3 = r.secretCode.includes(searchVal);
+          if (!m1 && !m2 && !m3) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-medium">Koi card record nahi mila.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(function(rec) {
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+
+        tr.innerHTML = 
+          '<td class="p-3 font-semibold text-slate-700">' + rec.tableName + '</td>' +
+          '<td class="p-3"><input type="text" id="mgr-code-' + rec.tableName + '-' + rec.id + '" value="' + rec.secretCode + '" maxlength="5" class="w-20 p-1 border border-slate-300 rounded font-mono font-bold text-purple-700 text-xs bg-white"></td>' +
+          '<td class="p-3"><input type="text" id="mgr-card-' + rec.tableName + '-' + rec.id + '" value="' + rec.fullCardNumber + '" class="w-32 p-1 border border-slate-300 rounded font-mono text-xs bg-white"></td>' +
+          '<td class="p-3"><input type="text" id="mgr-name-' + rec.tableName + '-' + rec.id + '" value="' + rec.holderName + '" class="w-32 p-1 border border-slate-300 rounded text-xs uppercase bg-white"></td>' +
+          '<td class="p-3"><input type="text" id="mgr-father-' + rec.tableName + '-' + rec.id + '" value="' + rec.fatherHusbandName + '" class="w-28 p-1 border border-slate-300 rounded text-xs uppercase bg-white"></td>' +
+          '<td class="p-3"><input type="text" id="mgr-units-' + rec.tableName + '-' + rec.id + '" value="' + rec.units + '" class="w-14 p-1 border border-slate-300 rounded text-xs text-center bg-white"></td>' +
+          '<td class="p-3 text-center">' +
+            '<button onclick="updateSingleCardRecord(\'' + rec.tableName + '\', ' + rec.id + ')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-1 px-2.5 rounded text-xs shadow-sm transition">Update</button>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    async function addNewCardRecord(e) {
+      e.preventDefault();
+      var tableName = document.getElementById('newCardType').value;
+      var cardNum = document.getElementById('newCardNumber').value.trim().toUpperCase();
+      var secretCode = document.getElementById('newSecretCode').value.trim();
+      var holderName = document.getElementById('newHolderName').value.trim().toUpperCase();
+      var fatherName = document.getElementById('newFatherName').value.trim().toUpperCase();
+      var units = document.getElementById('newUnits').value.trim();
+
+      var payload = {
+        card_number: cardNum,
+        secret_code: secretCode,
+        holder_name: holderName,
+        father_husband_name: fatherName,
+        units: units
+      };
+
+      const { error } = await supabaseClient.from(tableName).insert([payload]);
+      if (error) {
+        alert('Card add karne mein error aayi: ' + error.message);
+      } else {
+        alert('Naya card safaltapoorvak jodh diya gaya!');
+        document.getElementById('newCardNumber').value = '';
+        document.getElementById('newSecretCode').value = '';
+        document.getElementById('newHolderName').value = '';
+        document.getElementById('newFatherName').value = '';
+        loadAllData();
+      }
+    }
+
+    async function updateSingleCardRecord(tableName, recordId) {
+      var sCode = document.getElementById('mgr-code-' + tableName + '-' + recordId).value.trim();
+      var cNum = document.getElementById('mgr-card-' + tableName + '-' + recordId).value.trim().toUpperCase();
+      var hName = document.getElementById('mgr-name-' + tableName + '-' + recordId).value.trim().toUpperCase();
+      var fName = document.getElementById('mgr-father-' + tableName + '-' + recordId).value.trim().toUpperCase();
+      var uCount = document.getElementById('mgr-units-' + tableName + '-' + recordId).value.trim();
+
+      const { error } = await supabaseClient.from(tableName).update({
+        secret_code: sCode,
+        card_number: cNum,
+        holder_name: hName,
+        father_husband_name: fName,
+        units: uCount
+      }).eq('id', recordId);
+
+      if (error) {
+        alert('Update karne mein error aayi: ' + error.message);
+      } else {
+        alert('Record safaltapoorvak update ho gaya!');
+        loadAllData();
+      }
+    }
+
+    async function addNewSlot(e) {
+      e.preventDefault();
+      var date = document.getElementById('slotDate').value;
+      var label = date;
+      var limit = parseInt(document.getElementById('slotLimit').value, 10) || 200;
+
+      const { error } = await supabaseClient.from('slots').insert([{ date: date, label: label, limit_count: limit, booked_count: 0 }]);
+      if (error) {
+        alert('Slot add karne mein error aayi: ' + error.message);
+      } else {
+        alert('Naya date slot safaltapoorvak publish ho gaya!');
+        document.getElementById('slotDate').value = '';
+        loadSlots();
+      }
+    }
+
+    async function deleteSlot(dateCode) {
+      if (confirm('Kya aap waqai is date slot ko aur isse jude sabhi tokens ko delete karna chahte hain?')) {
+        await supabaseClient.from('bookings').delete().eq('token_date', dateCode);
+        await supabaseClient.from('bookings').delete().eq('date', dateCode);
+
+        const { error } = await supabaseClient.from('slots').delete().eq('date', dateCode);
+        if (error) {
+          alert('Delete karne mein error aayi: ' + error.message);
+        } else {
+          alert('Date slot aur uske sabhi tokens safaltapoorvak hata diye gaye hain!');
+          loadSlots();
+          loadBookings();
+        }
+      }
+    }
+
+    async function adminDirectBooking(e) {
+      e.preventDefault();
+      var date = document.getElementById('adminBookingDate').value;
+      var secCode = document.getElementById('adminSecretCodeInput').value.trim();
+      var ratNum = document.getElementById('adminRationNumberInput').value.trim().toUpperCase();
+      var holderName = document.getElementById('adminHolderName').value.trim().toUpperCase();
+      var phone = document.getElementById('adminPhone').value.trim();
+
+      if (!date) {
+        alert('Kripya date slot chunein.');
+        return;
+      }
+
+      var inputQuery = secCode || ratNum;
+      var matchedCardRecord = globalCardsCache.find(function(c) {
+        return c.fullCardNumber === inputQuery || c.secretCode === inputQuery || c.fullCardNumber.endsWith(inputQuery);
+      });
+
+      var cardReferenceToSave = matchedCardRecord ? matchedCardRecord.fullCardNumber : inputQuery;
+
+      const { data: slotData, error: slotErr } = await supabaseClient.from('slots').select('*').eq('date', date).single();
+      if (slotErr || !slotData) {
+        alert('Selected date slot nahi mila.');
+        return;
+      }
+
+      var currentBooked = slotData.booked_count || 0;
+      var limitCount = slotData.limit_count || 200;
+
+      if (currentBooked >= limitCount) {
+        alert('Is date ka token limit poora bhar chuka hai!');
+        return;
+      }
+
+      var newTokenNo = currentBooked + 1;
+
+      const { data: insertData, error: insertErr } = await supabaseClient.from('bookings').insert([{
+        token_date: date,
+        date: date,
+        card: cardReferenceToSave,
+        name: holderName,
+        phone: phone,
+        token_number: newTokenNo,
+        status: 'PENDING'
+      }]).select();
+
+      if (insertErr) {
+        alert('Booking save karne mein error aayi: ' + insertErr.message);
+        return;
+      }
+
+      await supabaseClient.from('slots').update({ booked_count: newTokenNo }).eq('date', date);
+
+      alert('Token safaltapoorvak book ho gaya! Token Number: ' + newTokenNo);
+      
+      document.getElementById('adminSecretCodeInput').value = '';
+      document.getElementById('adminRationNumberInput').value = '';
+      document.getElementById('adminHolderName').value = '';
+      document.getElementById('adminPhone').value = '';
+      document.getElementById('adminMultiContainer').classList.add('hidden');
+
+      loadSlots();
+      loadBookings();
+
+      if (insertData && insertData.length > 0) {
+        var cardInfoCheck = globalCardsCache.find(function(c) { return c.fullCardNumber === cardReferenceToSave; });
+        var isRed = cardInfoCheck ? (cardInfoCheck.cardType === 'RED') : false;
+        showAdminSlip(insertData[0], isRed);
+      }
+    }
+
+    async function deleteBooking(bookingId) {
+      if (confirm('Kya aap waqai is booking ko delete karna chahte hain?')) {
+        const { error } = await supabaseClient.from('bookings').delete().eq('id', bookingId);
+        if (error) {
+          alert('Delete karne mein error aayi: ' + error.message);
+        } else {
+          loadBookings();
+          loadSlots();
+        }
+      }
+    }
+
+    async function quickUpdateCard(bookingId) {
+      var inputField = document.getElementById('up-card-' + bookingId);
+      var newCardNo = inputField.value.trim().toUpperCase();
+
+      const { error } = await supabaseClient.from('bookings').update({ card: newCardNo }).eq('id', bookingId);
+      if (error) {
+        alert('Card number update karne mein error aayi: ' + error.message);
+      } else {
+        alert('Card number safaltapoorvak update ho gaya!');
+        loadBookings();
+      }
+    }
+
+    var currentActiveSlipBooking = null;
+
+    function showAdminSlip(booking, isRedCard) {
+      currentActiveSlipBooking = booking;
+      var slipCard = document.getElementById('adminSlipCardElement');
+      
+      if (isRedCard) {
+        slipCard.classList.add('red-card-theme');
+      } else {
+        slipCard.classList.remove('red-card-theme');
+      }
+
+      var cardNo = String(booking.card || booking.ration_card_number || 'N/A').trim();
+      var cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber === cardNo || c.secretCode === cardNo; });
+      if (!cardInfo && cardNo.length >= 4) {
+        var last4 = cardNo.slice(-4);
+        cardInfo = globalCardsCache.find(function(c) { return c.fullCardNumber.endsWith(last4); });
+      }
+
+      var holderName = (cardInfo ? cardInfo.holderName : null) || booking.name || 'N/A';
+      var initials = getNameInitials(holderName);
+      var formattedNum = String(booking.token_number || booking.id || '1').padStart(3, '0');
+      var fullToken = initials + '-' + formattedNum;
+
+      document.getElementById('admSlipTokenNo').innerText = fullToken;
+      document.getElementById('admSlipRationLastDigits').innerText = cardNo.length >= 4 ? ('Card Ending: ...' + cardNo.slice(-4)) : ('Card: ' + cardNo);
+      document.getElementById('admSlipDate').innerText = booking.token_date || booking.date || '-';
+      document.getElementById('admSlipRationNo').innerText = cardNo;
+      document.getElementById('admSlipName').innerText = holderName;
+      document.getElementById('admSlipPhone').innerText = booking.phone || 'N/A';
+
+      document.getElementById('adminSlipModal').classList.remove('hidden');
+    }
+
+    function closeAdminSlipModal() {
+      document.getElementById('adminSlipModal').classList.add('hidden');
+    }
+
+    function downloadAdminSlipAsJPG() {
+      var slipElement = document.getElementById('adminSlipCardElement');
+      html2canvas(slipElement, { scale: 3, useCORS: true }).then(function(canvas) {
+        var link = document.createElement('a');
+        link.download = 'Ration_Token_Slip_' + (currentActiveSlipBooking ? (currentActiveSlipBooking.token_number || 'slip') : 'admin') + '.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
     }
   </script>
 </body>
